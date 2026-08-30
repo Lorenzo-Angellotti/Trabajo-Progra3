@@ -4,7 +4,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class comodin {
+public class Comodin {
 
     /*
      * Algoritmo Greedy: en cada turno elige la pregunta que minimiza el

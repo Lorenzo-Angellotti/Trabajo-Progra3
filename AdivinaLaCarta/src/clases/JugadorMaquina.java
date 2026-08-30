@@ -10,20 +10,32 @@ public class JugadorMaquina {
     private final Pregunta[] preguntas;
     private final boolean[] preguntasUsadas;
     private final Random random;
-    private final comodin selectorGreedy;
+    private final Comodin selectorGreedy;
+    private final Personalidad personalidad;
     private boolean sinCandidatos;
+    private int preguntasDesdeUltimaApuesta;
 
     public JugadorMaquina(String nombre,
                           ArrayList<Personaje> personajes,
                           Pregunta[] preguntas,
                           Random random) {
+        this(nombre, personajes, preguntas, random, Personalidad.NORMAL);
+    }
+
+    public JugadorMaquina(String nombre,
+                          ArrayList<Personaje> personajes,
+                          Pregunta[] preguntas,
+                          Random random,
+                          Personalidad personalidad) {
         this.nombre = nombre;
         this.candidatos = new ArrayList<>(personajes);
         this.preguntas = preguntas;
         this.preguntasUsadas = new boolean[preguntas.length];
         this.random = random;
-        this.selectorGreedy = new comodin();
+        this.selectorGreedy = new Comodin();
+        this.personalidad = personalidad;
         this.sinCandidatos = false;
+        this.preguntasDesdeUltimaApuesta = 0;
     }
 
     public boolean jugarTurno(Respondedor rival,
@@ -38,19 +50,18 @@ public class JugadorMaquina {
             return false;
         }
 
+        // Certeza total: no hay nada que arriesgar.
         if (candidatos.size() == 1) {
-            Personaje supuesto = candidatos.get(0);
-            boolean acierto = rival.confirmarPersonaje(supuesto);
+            return apostar(rival, salida, "SUPOSICION DIRECTA (un solo candidato)");
+        }
 
-            salida.println("SUPOSICION DIRECTA: " + supuesto.getId()
-                    + " - " + supuesto.getNombre()
-                    + (acierto ? " -> CORRECTA" : " -> INCORRECTA"));
-
-            if (!acierto) {
-                candidatos.remove(supuesto);
-            }
-
-            return acierto;
+        /*
+         * Decision Greedy del turno: preguntar o jugarsela.
+         * El turno se gasta en una cosa o en la otra, nunca en las dos.
+         */
+        if (decideArriesgar(mostrarProcesoCompleto, salida)) {
+            return apostar(rival, salida,
+                    "SE LA JUEGA (personalidad " + personalidad.getNombre() + ")");
         }
 
         Pregunta pregunta = selectorGreedy.elegirMejorPregunta(
@@ -58,23 +69,13 @@ public class JugadorMaquina {
                 mostrarProcesoCompleto, salida);
 
         if (pregunta == null) {
-            Personaje supuesto = candidatos.get(0);
-            boolean acierto = rival.confirmarPersonaje(supuesto);
-
             salida.println("No quedan preguntas que separen candidatos.");
-            salida.println("SUPOSICION DIRECTA: " + supuesto.getId()
-                    + " - " + supuesto.getNombre()
-                    + (acierto ? " -> CORRECTA" : " -> INCORRECTA"));
-
-            if (!acierto) {
-                candidatos.remove(supuesto);
-            }
-
-            return acierto;
+            return apostar(rival, salida, "SUPOSICION FORZADA");
         }
 
         int posicionPregunta = buscarPosicionPregunta(pregunta);
         preguntasUsadas[posicionPregunta] = true;
+        preguntasDesdeUltimaApuesta++;
 
         boolean respuesta = rival.responderPregunta(pregunta);
         ArrayList<Personaje> descartados = filtrarCandidatos(pregunta, respuesta);
@@ -85,6 +86,59 @@ public class JugadorMaquina {
         salida.println("RESTANTES: " + mostrarCandidatos());
 
         return false;
+    }
+
+    /*
+     * La maquina se la juega cuando se cumplen las dos condiciones de su
+     * personalidad: que hayan pasado suficientes preguntas desde la ultima
+     * apuesta y que la probabilidad de acertar (1/k) llegue a su umbral.
+     */
+    private boolean decideArriesgar(boolean mostrarProceso, PrintStream salida) {
+        boolean toco = preguntasDesdeUltimaApuesta
+                >= personalidad.getPreguntasEntreApuestas();
+        boolean conviene = personalidad.valeLaPena(candidatos.size());
+        double probabilidad = 100.0 / candidatos.size();
+
+        if (mostrarProceso) {
+            salida.printf("Decision de riesgo (%s): %d preguntas desde la "
+                            + "ultima apuesta (necesita %d), "
+                            + "probabilidad de acertar %.1f%% "
+                            + "(necesita %.0f%%) -> %s%n",
+                    personalidad.getNombre(),
+                    preguntasDesdeUltimaApuesta,
+                    personalidad.getPreguntasEntreApuestas(),
+                    probabilidad,
+                    personalidad.getUmbralRiesgo() * 100,
+                    (toco && conviene) ? "SE LA JUEGA" : "PREGUNTA");
+        }
+
+        return toco && conviene;
+    }
+
+    /*
+     * Todos los candidatos que quedan son igual de probables, asi que la
+     * eleccion es al azar. Si falla, ese candidato se descarta: la apuesta
+     * perdida igual aporta informacion.
+     */
+    private boolean apostar(Respondedor rival, PrintStream salida, String motivo) {
+        Personaje supuesto = candidatos.get(random.nextInt(candidatos.size()));
+        boolean acierto = rival.confirmarPersonaje(supuesto);
+
+        salida.println(motivo + ": es el " + supuesto.getId()
+                + " - " + supuesto.getNombre() + "?"
+                + (acierto ? " -> CORRECTA" : " -> INCORRECTA"));
+
+        preguntasDesdeUltimaApuesta = 0;
+
+        if (!acierto) {
+            candidatos.remove(supuesto);
+        }
+
+        return acierto;
+    }
+
+    public Personalidad getPersonalidad() {
+        return personalidad;
     }
 
     private ArrayList<Personaje> filtrarCandidatos(Pregunta pregunta,
