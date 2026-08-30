@@ -1,32 +1,41 @@
+package funcionalidad;
+
 import clases.ColorPelo;
 import clases.JugadorMaquina;
 import clases.Personaje;
+import clases.Personalidad;
 import clases.Pregunta;
+import clases.Ordenador;
 import clases.Respondedor;
 import clases.SecretoMaquina;
-import clases.buscador;
+import clases.Buscador;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 import java.util.Scanner;
 
-public class funcionalidad {
+public class Funcionalidad {
     private ArrayList<Personaje> personajes;
     private Personaje elegido;
     private Pregunta[] preguntas;
     private final Scanner teclado;
     private final Random random;
-    private final buscador buscadorPersonajes;
+    private final Buscador buscadorPersonajes;
+    private final Ordenador ordenador;
     private int siguienteId;
+    private ArrayList<Personaje> catalogoEnCarga;
+    private String trazaInicializacion;
 
-    public funcionalidad() {
+    public Funcionalidad() {
         this(new Scanner(System.in), new Random());
     }
 
-    public funcionalidad(Scanner teclado, Random random) {
+    public Funcionalidad(Scanner teclado, Random random) {
         this.teclado = teclado;
         this.random = random;
-        this.buscadorPersonajes = new buscador();
+        this.buscadorPersonajes = new Buscador();
+        this.ordenador = new Ordenador();
     }
 
     public void iniciarJuego() {
@@ -40,9 +49,10 @@ public class funcionalidad {
             System.out.println("1. Humano vs Maquina");
             System.out.println("2. Maquina vs Maquina");
             System.out.println("3. Ver los 23 personajes");
+            System.out.println("4. Ver como la maquina inicializo y ordeno");
             System.out.println("0. Salir");
 
-            opcion = leerEntero("Elija una opcion: ", 0, 3);
+            opcion = leerEntero("Elija una opcion: ", 0, 4);
 
             switch (opcion) {
                 case 1:
@@ -54,6 +64,9 @@ public class funcionalidad {
                 case 3:
                     mostrarCatalogoCompleto();
                     break;
+                case 4:
+                    mostrarInicializacion();
+                    break;
                 default:
                     System.out.println("Fin del juego.");
                     break;
@@ -63,17 +76,81 @@ public class funcionalidad {
 
     /* Permite probar el catalogo sin iniciar toda la consola. */
     public void prepararJuego() {
-        personajes = new ArrayList<>();
         preguntas = crearPreguntas();
         siguienteId = 1;
         elegido = null;
-        cargarPersonajes();
+        personajes = inicializarPersonajes();
     }
 
-    private void cargarPersonajes() {
+    /*
+     * Inicializacion en tres etapas, como pide la consigna:
+     *
+     *   Etapa 0  La caja volcada. Los 23 personajes salen en cualquier orden.
+     *   Etapa 1  La maquina los agrupa por genero. Cada alta usa insercion por
+     *            busqueda binaria: Theta(log n) comparaciones por personaje.
+     *            Este es el estado "ordenados unicamente segun su genero".
+     *   Etapa 2  La maquina ordena por ID con MergeSort y deja la lista
+     *            autoincremental: Theta(n log n).
+     *
+     * La traza queda guardada para poder mostrarla desde el menu.
+     */
+    private ArrayList<Personaje> inicializarPersonajes() {
+        StringBuilder traza = new StringBuilder();
+
+        ArrayList<Personaje> caja = crearCatalogoCrudo();
+        Collections.shuffle(caja, random);
+        traza.append("ETAPA 0 - La caja volcada (orden aleatorio):\n")
+                .append("  ").append(mostrarIds(caja)).append("\n\n");
+
+        ArrayList<Personaje> agrupados = new ArrayList<>();
+        for (Personaje personaje : caja) {
+            // Divide y Conquista: insercion por busqueda binaria.
+            buscadorPersonajes.agregarOrdenadoPorGenero(agrupados, personaje);
+        }
+        traza.append("ETAPA 1 - Agrupados por genero (insercion binaria, ")
+                .append("femenino primero):\n")
+                .append("  ").append(mostrarIds(agrupados)).append("\n\n");
+
+        // Divide y Conquista: MergeSort deja la lista autoincremental.
+        ordenador.ordenarPorId(agrupados);
+        traza.append("ETAPA 2 - Ordenados por ID con MergeSort ")
+                .append("(lista autoincremental):\n")
+                .append("  ").append(mostrarIds(agrupados)).append("\n");
+
+        trazaInicializacion = traza.toString();
+        return agrupados;
+    }
+
+    private String mostrarIds(ArrayList<Personaje> lista) {
+        StringBuilder texto = new StringBuilder("[");
+
+        for (int i = 0; i < lista.size(); i++) {
+            texto.append(lista.get(i).getId());
+
+            if (i < lista.size() - 1) {
+                texto.append(", ");
+            }
+        }
+
+        return texto.append("]").toString();
+    }
+
+    public String getTrazaInicializacion() {
+        return trazaInicializacion;
+    }
+
+    private ArrayList<Personaje> crearCatalogoCrudo() {
+        ArrayList<Personaje> crudos = new ArrayList<>();
+        cargarPersonajes(crudos);
+        return crudos;
+    }
+
+    private void cargarPersonajes(ArrayList<Personaje> destino) {
+        catalogoEnCarga = destino;
+
         // Marvel: IDs 1 a 13.
         agregarPersonaje("Spider-Man (Peter Parker)", true, true, false,
-                true, false, false, false, false, ColorPelo.NEGRO, true);
+                true, false, false, true, false, ColorPelo.NEGRO, true);
         agregarPersonaje("Iron Man (Tony Stark)", true, true, false,
                 true, true, true, false, false, ColorPelo.NEGRO, true);
         agregarPersonaje("Capitán América (Steve Rogers)", true, true, false,
@@ -81,23 +158,23 @@ public class funcionalidad {
         agregarPersonaje("Thor", true, true, true,
                 false, true, true, false, false, ColorPelo.AMARILLO, true);
         agregarPersonaje("Hulk (Bruce Banner)", true, true, false,
-                false, false, false, false, false, ColorPelo.NEGRO, true);
-        agregarPersonaje("Wolverine (Logan)", true, true, false,
-                false, true, false, false, false, ColorPelo.NEGRO, true);
+                false, false, false, true, false, ColorPelo.NEGRO, true);
+        agregarPersonaje("Jean Grey", false, true, false,
+                false, false, true, false, false, ColorPelo.COLORADO, true);
         agregarPersonaje("Viuda Negra (Natasha Romanoff)", false, false, false,
                 false, true, false, false, false, ColorPelo.COLORADO, true);
         agregarPersonaje("Doctor Strange", true, true, true,
                 false, false, true, false, false, ColorPelo.NEGRO, true);
-        agregarPersonaje("Pantera Negra (T'Challa)", true, true, false,
+        agregarPersonaje("Shuri (Pantera Negra)", false, true, false,
                 true, true, false, false, false, ColorPelo.NEGRO, true);
         agregarPersonaje("Deadpool (Wade Wilson)", true, true, false,
                 true, true, false, false, true, ColorPelo.NEGRO, true);
-        agregarPersonaje("Ant-Man (Scott Lang)", true, true, false,
+        agregarPersonaje("Avispa (Janet van Dyne)", false, true, false,
                 true, false, true, false, false, ColorPelo.NEGRO, true);
         agregarPersonaje("Groot", true, true, false,
                 false, false, false, false, true, ColorPelo.NEGRO, true);
-        agregarPersonaje("Star-Lord (Peter Quill)", true, false, false,
-                true, true, true, false, false, ColorPelo.AMARILLO, true);
+        agregarPersonaje("Gamora", false, true, false,
+                false, true, false, false, false, ColorPelo.NEGRO, true);
 
         // DC: IDs 14 a 23.
         agregarPersonaje("Superman (Clark Kent)", true, true, true,
@@ -105,21 +182,21 @@ public class funcionalidad {
         agregarPersonaje("Batman (Bruce Wayne)", true, false, true,
                 true, true, false, false, false, ColorPelo.NEGRO, false);
         agregarPersonaje("Mujer Maravilla (Diana Prince)", false, true, false,
-                false, true, true, false, false, ColorPelo.NEGRO, false);
+                false, true, true, true, false, ColorPelo.NEGRO, false);
         agregarPersonaje("Flash (Barry Allen)", true, true, false,
                 true, false, false, false, false, ColorPelo.AMARILLO, false);
         agregarPersonaje("Aquaman (Arthur Curry)", true, true, false,
                 false, true, false, false, false, ColorPelo.AMARILLO, false);
-        agregarPersonaje("Linterna Verde (Hal Jordan)", true, true, false,
-                true, false, true, false, false, ColorPelo.NEGRO, false);
-        agregarPersonaje("Shazam (Billy Batson)", true, true, true,
-                false, false, true, false, false, ColorPelo.NEGRO, false);
+        agregarPersonaje("Chica Halcón (Shayera Hol)", false, true, false,
+                true, true, true, false, false, ColorPelo.COLORADO, false);
+        agregarPersonaje("Supergirl (Kara Zor-El)", false, true, true,
+                false, false, true, false, false, ColorPelo.AMARILLO, false);
         agregarPersonaje("Cyborg (Victor Stone)", true, true, false,
                 false, true, true, false, true, ColorPelo.NEGRO, false);
-        agregarPersonaje("Green Arrow (Oliver Queen)", true, false, false,
-                true, true, false, false, false, ColorPelo.AMARILLO, false);
-        agregarPersonaje("Atom (Ray Palmer)", true, true, false,
-                true, false, false, false, false, ColorPelo.NEGRO, false);
+        agregarPersonaje("Canario Negro (Dinah Lance)", false, true, false,
+                true, false, false, false, false, ColorPelo.AMARILLO, false);
+        agregarPersonaje("Batgirl (Barbara Gordon)", false, false, false,
+                true, true, false, true, false, ColorPelo.COLORADO, false);
     }
 
     private void agregarPersonaje(String nombre,
@@ -139,8 +216,8 @@ public class funcionalidad {
 
         siguienteId++;
 
-        // Divide y Conquista encuentra la posicion ordenada por genero.
-        buscadorPersonajes.agregarOrdenadoPorGenero(personajes, nuevo);
+        // Solo carga el dato crudo. Ordenar es tarea de la maquina (etapas 1 y 2).
+        catalogoEnCarga.add(nuevo);
     }
 
     private Pregunta[] crearPreguntas() {
@@ -166,13 +243,21 @@ public class funcionalidad {
         elegido.setElegido(true);
 
         SecretoMaquina secretoDeLaMaquina = new SecretoMaquina(elegido);
+        Personalidad personalidad = elegirPersonalidadAlAzar();
         JugadorMaquina maquina = new JugadorMaquina(
-                "Maquina", personajes, preguntas, new Random(random.nextLong()));
+                "Maquina", personajes, preguntas,
+                new Random(random.nextLong()), personalidad);
         ArrayList<Personaje> candidatosDelHumano = new ArrayList<>(personajes);
         boolean[] preguntasUsadasPorHumano = new boolean[preguntas.length];
         Respondedor secretoDelHumano = crearRespondedorHumano();
 
         System.out.println("\n=== HUMANO VS MAQUINA ===");
+        System.out.println("Personalidad de la maquina: "
+                + personalidad.getNombre()
+                + " (se la juega cada " + personalidad.getPreguntasEntreApuestas()
+                + " preguntas si quedan "
+                + personalidad.candidatosMaximosParaApostar()
+                + " candidatos o menos)");
         mostrarCatalogoResumido();
         System.out.println("\nElija mentalmente un personaje de la lista.");
         System.out.println("No debe escribir su ID: la maquina no guardara su secreto.");
@@ -283,14 +368,21 @@ public class funcionalidad {
         SecretoMaquina respondedorA = new SecretoMaquina(secretoA);
         SecretoMaquina respondedorB = new SecretoMaquina(secretoB);
 
+        // Personalidades distintas para que se note el contraste de criterios.
         JugadorMaquina maquinaA = new JugadorMaquina(
-                "Maquina A", personajes, preguntas, new Random(random.nextLong()));
+                "Maquina A", personajes, preguntas,
+                new Random(random.nextLong()), Personalidad.CAUTELOSA);
         JugadorMaquina maquinaB = new JugadorMaquina(
-                "Maquina B", personajes, preguntas, new Random(random.nextLong()));
+                "Maquina B", personajes, preguntas,
+                new Random(random.nextLong()), Personalidad.AUDAZ);
 
         System.out.println("\n=== MAQUINA VS MAQUINA ===");
         System.out.println("Los secretos son distintos y se revelaran al finalizar.");
         System.out.println("Se mostrara todo el proceso GREEDY de cada turno.");
+        System.out.println("Maquina A juega con personalidad "
+                + maquinaA.getPersonalidad().getNombre()
+                + " y Maquina B con personalidad "
+                + maquinaB.getPersonalidad().getNombre() + ".");
 
         for (int turno = 1; turno <= 100; turno++) {
             boolean juegaA = turno % 2 != 0;
@@ -342,6 +434,11 @@ public class funcionalidad {
                 candidatos.remove(i);
             }
         }
+    }
+
+    private Personalidad elegirPersonalidadAlAzar() {
+        Personalidad[] opciones = Personalidad.values();
+        return opciones[random.nextInt(opciones.length)];
     }
 
     private Personaje elegirAleatoriamente() {
@@ -397,6 +494,14 @@ public class funcionalidad {
 
             System.out.println(personaje.mostrarResumen());
         }
+    }
+
+    private void mostrarInicializacion() {
+        System.out.println("\n=== INICIALIZACION DE LA MAQUINA ===");
+        System.out.println(trazaInicializacion);
+        System.out.println("Etapa 1: insercion por busqueda binaria, "
+                + "Theta(log n) por personaje.");
+        System.out.println("Etapa 2: MergeSort, Theta(n log n) en todos los casos.");
     }
 
     private void mostrarCatalogoCompleto() {
