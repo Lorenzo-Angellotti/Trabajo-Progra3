@@ -2,7 +2,7 @@ package clases;
 
 import java.util.ArrayList;
 
-public class buscador {
+public class Buscador {
 
     /*
      * Divide y Conquista: encuentra recursivamente la posicion donde debe
@@ -37,39 +37,16 @@ public class buscador {
     }
 
     /*
-     * Los IDs estan ordenados dentro de cada bloque de genero. Primero se
-     * busca la frontera y luego se aplica busqueda binaria recursiva en cada
-     * bloque. El costo total es O(log n).
+     * Busqueda binaria clasica (Clase 02). Se apoya en que Ordenador ya dejo
+     * la lista autoincremental por ID, asi que alcanza con una sola busqueda.
+     *
+     * Recurrencia: T(n) = T(n/2) + Theta(1)
+     * Con a = 1, b = 2, k = 0 estamos en el caso a = b^k, o sea Theta(log n).
+     *
+     * Reemplaza al recorrido lineal O(n) que tenia el metodo adivinar original.
      */
     public Personaje buscarPorId(ArrayList<Personaje> personajes, int id) {
-        int primerMasculino = buscarPrimerMasculino(
-                personajes, 0, personajes.size());
-
-        Personaje encontrado = buscarIdBinario(
-                personajes, id, 0, primerMasculino - 1);
-
-        if (encontrado == null) {
-            encontrado = buscarIdBinario(
-                    personajes, id, primerMasculino, personajes.size() - 1);
-        }
-
-        return encontrado;
-    }
-
-    private int buscarPrimerMasculino(ArrayList<Personaje> personajes,
-                                      int inicio,
-                                      int finExclusivo) {
-        if (inicio >= finExclusivo) {
-            return inicio;
-        }
-
-        int medio = inicio + (finExclusivo - inicio) / 2;
-
-        if (personajes.get(medio).isGeneroMasculino()) {
-            return buscarPrimerMasculino(personajes, inicio, medio);
-        }
-
-        return buscarPrimerMasculino(personajes, medio + 1, finExclusivo);
+        return buscarIdBinario(personajes, id, 0, personajes.size() - 1);
     }
 
     private Personaje buscarIdBinario(ArrayList<Personaje> personajes,
