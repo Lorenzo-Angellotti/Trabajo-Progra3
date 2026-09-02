@@ -171,7 +171,7 @@ public class Funcionalidad {
                 true, true, false, false, true, ColorPelo.NEGRO, true);
         agregarPersonaje("Avispa (Janet van Dyne)", false, true, false,
                 true, false, true, false, false, ColorPelo.NEGRO, true);
-        agregarPersonaje("Groot", true, true, false,
+        agregarPersonaje("Profesor X (Charles Xavier)", true, true, false,
                 false, false, false, false, true, ColorPelo.NEGRO, true);
         agregarPersonaje("Gamora", false, true, false,
                 false, true, false, false, false, ColorPelo.NEGRO, true);
@@ -182,7 +182,7 @@ public class Funcionalidad {
         agregarPersonaje("Batman (Bruce Wayne)", true, false, true,
                 true, true, false, false, false, ColorPelo.NEGRO, false);
         agregarPersonaje("Mujer Maravilla (Diana Prince)", false, true, false,
-                false, true, true, true, false, ColorPelo.NEGRO, false);
+                false, true, true, false, false, ColorPelo.NEGRO, false);
         agregarPersonaje("Flash (Barry Allen)", true, true, false,
                 true, false, false, false, false, ColorPelo.AMARILLO, false);
         agregarPersonaje("Aquaman (Arthur Curry)", true, true, false,
@@ -195,7 +195,7 @@ public class Funcionalidad {
                 false, true, true, false, true, ColorPelo.NEGRO, false);
         agregarPersonaje("Canario Negro (Dinah Lance)", false, true, false,
                 true, false, false, false, false, ColorPelo.AMARILLO, false);
-        agregarPersonaje("Batgirl (Barbara Gordon)", false, false, false,
+        agregarPersonaje("Batgirl (Barbara Gordon)", false, false, true,
                 true, true, false, true, false, ColorPelo.COLORADO, false);
     }
 
@@ -228,7 +228,8 @@ public class Funcionalidad {
                 new Pregunta(Pregunta.MASCARA, "Usa mascara?"),
                 new Pregunta(Pregunta.ARMA, "Usa un arma?"),
                 new Pregunta(Pregunta.VUELA, "Puede volar?"),
-                new Pregunta(Pregunta.LENTES, "Usa lentes?"),
+                new Pregunta(Pregunta.LENTES,
+                        "Usa lentes en su identidad civil?"),
                 new Pregunta(Pregunta.CALVICIE, "Tiene calvicie?"),
                 new Pregunta(Pregunta.PELO_COLORADO, "Tiene el pelo colorado?"),
                 new Pregunta(Pregunta.PELO_NEGRO, "Tiene el pelo negro?"),

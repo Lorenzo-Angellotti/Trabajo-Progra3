@@ -44,6 +44,12 @@ public class Pregunta {
                 return personaje.isArma();
             case VUELA:
                 return personaje.isVuela();
+            /*
+             * Los lentes se evaluan sobre la identidad civil del personaje,
+             * no sobre el traje: Clark Kent usa lentes aunque Superman no.
+             * El criterio esta enunciado en el texto de la pregunta para que
+             * el jugador humano no tenga que adivinarlo.
+             */
             case LENTES:
                 return personaje.isLentes();
             case CALVICIE:

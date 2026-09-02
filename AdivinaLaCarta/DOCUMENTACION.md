@@ -283,22 +283,47 @@ elegir. El elenco se diseñó para que los filtros de la consigna sean útiles:
 |---|---:|---:|---:|
 | género masculino *(consigna)* | 13 | 10 | 13 |
 | calvicie *(consigna)* | 3 | 20 | 20 |
-| lentes *(consigna)* | 5 | 18 | 18 |
+| lentes *(consigna)* | 4 | 19 | 19 |
 | pelo colorado *(consigna)* | 4 | 19 | 19 |
 | pelo negro *(consigna)* | 10 | 13 | 13 |
 | pelo amarillo *(consigna)* | 6 | 17 | 17 |
 | poderes | 20 | 3 | 20 |
-| capa | 5 | 18 | 18 |
+| capa | 6 | 17 | 17 |
 | máscara | 11 | 12 | 12 |
 | arma | 13 | 10 | 13 |
 | vuela | 10 | 13 | 13 |
 | universo Marvel | 13 | 10 | 13 |
 
-La calvicie queda en 3 contra 20 y no se forzó: los personajes calvos son raros
-en cualquier elenco de superhéroes. Es un filtro de **baja frecuencia pero alta
-información**: casi siempre responde NO y descarta poco, pero cuando responde SÍ
-deja apenas tres candidatos. El Greedy lo detecta solo y lo pospone, que es
-exactamente el comportamiento esperado del criterio de minimizar el peor caso.
+### Por qué la calvicie sigue estando aunque esté desbalanceada
+
+La calvicie queda en 3 contra 20 y se evaluó sacarla del juego. Se decidió
+mantenerla por dos razones.
+
+**Primera: sin ella el juego se rompe.** Se verificó que al quitar la calvicie,
+Capitán América y Deadpool quedan con firma idéntica en los once filtros
+restantes, y ninguna combinación de los atributos disponibles los separa. Esto
+muestra que un filtro poco frecuente puede ser irremplazable: no aporta en el
+caso promedio, pero es el único que separa un par concreto.
+
+**Segunda: está en la lista de filtros de la consigna.** El proyecto ya agrega
+seis atributos que la consigna no menciona, y esa decisión está justificada con
+la demostración de arriba. Quitar además uno de los que sí menciona sería
+incoherente.
+
+El desbalance no es un defecto de diseño. En el Adivina Quién original la
+calvicie también es un rasgo minoritario, alrededor de 5 de 24 personajes. Es un
+filtro de **baja frecuencia pero alta información**: casi siempre responde NO y
+descarta poco, pero cuando responde SÍ deja apenas tres candidatos. El Greedy lo
+detecta solo y lo pospone, que es exactamente el comportamiento esperado del
+criterio de minimizar el peor caso.
+
+### El criterio de los lentes
+
+Los lentes se evalúan sobre la **identidad civil** del personaje, no sobre el
+traje: Clark Kent usa lentes aunque Superman no. Para que el jugador humano no
+tenga que adivinar el criterio, está enunciado en el texto mismo de la pregunta:
+*"¿Usa lentes en su identidad civil?"*. Un criterio de evaluación que el jugador
+no puede ver es un criterio que vuelve el juego injusto.
 
 ## 7. Protección del secreto humano
 
