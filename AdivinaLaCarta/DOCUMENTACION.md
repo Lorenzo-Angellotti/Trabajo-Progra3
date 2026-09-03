@@ -107,6 +107,12 @@ El `Merge` recorre las dos mitades una sola vez, y ése es el `k = 1`.
 implementación se invirtió el orden de las condiciones para comprobar primero
 que queden elementos en cada mitad y recién después comparar los IDs.
 
+**Errata detectada en el material de clase.** En el ejemplo de funcionamiento de
+MergeSort de la Clase 02, al hacer el merge de `[5]` y `[3]` en la rama
+izquierda, el diagrama muestra `5 3` cuando debería mostrar `3 5`. Se confirma
+con el nivel siguiente del mismo diagrama, que da `1 3 5 7 8`: el 3 ya estaba
+antes que el 5. La implementación de este proyecto produce el orden correcto.
+
 ### Por qué MergeSort y no QuickSort
 
 **MergeSort garantiza `Θ(n log n)` en todos los casos. QuickSort no.**
@@ -212,9 +218,59 @@ intermedio**: arriesgar de menos desperdicia turnos preguntando cuando ya casi
 no queda información por ganar, y arriesgar de más los desperdicia en apuestas
 con poca probabilidad de acertar.
 
-En Humano vs Máquina la personalidad se sortea al inicio y se anuncia. En
-Máquina vs Máquina se asignan `CAUTELOSA` y `AUDAZ` a propósito, para que el
-contraste de criterios se vea en la traza.
+### Las dos máquinas virtuales
+
+La consigna pide modelar dos máquinas. Las dos aplican **el mismo criterio
+Greedy** para elegir la pregunta, minimizar el peor caso, y se diferencian en el
+**umbral de riesgo** con el que deciden dejar de preguntar y jugársela.
+
+| Máquina | Personalidad | Arriesga cuando quedan | Turnos promedio |
+|---|---|---|---:|
+| A | `CAUTELOSA` | 2 candidatos o menos | 5,30 |
+| B | `AUDAZ` | 5 candidatos o menos | 5,37 |
+
+El profesor pidió expresamente que la decisión de arriesgar responda a un
+criterio numérico y no al azar, y describió el tipo de criterio esperado:
+*"cuando yo reduzco las posibilidades en un 60% sí o sí me la juego porque ya
+reduje más de la mitad"*. El umbral de riesgo es exactamente eso, expresado como
+probabilidad de acierto `1/k`.
+
+En Humano vs Máquina el jugador **elige** contra cuál de las tres personalidades
+jugar. No se sortea, así queda explícito contra qué umbral se enfrenta.
+
+### Ninguna decisión de la máquina es al azar
+
+`JugadorMaquina` y `Comodin` **no tienen ninguna fuente de azar**: no reciben ni
+usan `Random`. Las tres decisiones que toma una máquina se derivan de un
+criterio explícito que se imprime en consola:
+
+| Decisión | Criterio |
+|---|---|
+| Qué pregunta hacer | El menor peor caso; ante empate se prefiere un filtro de la consigna y, si persiste, el primero en el orden declarado |
+| Cuándo arriesgar | `1/k ≥ umbral` de la personalidad, con las preguntas mínimas cumplidas |
+| A quién apostar | El candidato de menor ID, o sea el primero de la lista que dejó ordenada el MergeSort |
+
+Sobre la última: al llegar a la apuesta todos los candidatos que sobreviven son
+**equiprobables**, cada uno con probabilidad `1/k`. Ninguna elección domina a
+otra en términos de acierto, así que no existe un criterio que mejore el
+resultado. Lo que sí importa es que la decisión sea determinista y auditable:
+sortear sería indefendible frente a la pregunta "¿qué criterio usaste?".
+
+Como consecuencia, **dos partidas contra el mismo secreto producen exactamente
+la misma traza, jugada por jugada**. Hay una prueba automática que lo verifica.
+
+### Dónde sí se usa azar, y por qué
+
+El único `Random` del proyecto está en `Funcionalidad`, y se usa para dos cosas
+que **no son decisiones de la máquina** sino condiciones iniciales del juego:
+
+- barajar los 23 personajes en la Etapa 0, que modela volcar la caja del juego
+  de mesa;
+- elegir los secretos de cada partida.
+
+La distinción es la que importa: el azar puede **modelar el mundo**, pero no
+puede **reemplazar un criterio**. Si el orden inicial fuera fijo, el MergeSort
+no tendría nada que ordenar y la Etapa 2 sería decorativa.
 
 ## 6. Preguntas: por qué son doce y no seis
 
@@ -325,6 +381,26 @@ tenga que adivinar el criterio, está enunciado en el texto mismo de la pregunta
 *"¿Usa lentes en su identidad civil?"*. Un criterio de evaluación que el jugador
 no puede ver es un criterio que vuelve el juego injusto.
 
+## 6.b Separación entre la consola y la lógica
+
+El profesor pidió que el razonamiento de la máquina se vea en consola, pero
+también que **si se apaga esa salida el juego siga funcionando igual**. Eso se
+resuelve por diseño y no con condicionales repartidos por el código.
+
+Ningún método del paquete `clases` escribe en `System.out`. Todos reciben un
+`PrintStream salida` y un `boolean mostrarProceso`. La lógica del juego no
+depende en ningún punto de que se haya impreso algo: la salida es un observador
+del proceso, no parte de él.
+
+La opción 5 del menú alterna el razonamiento en consola en tiempo real, y sirve
+para demostrarlo: con la traza activada o silenciada, la partida avanza y
+termina exactamente igual. Las pruebas automáticas se apoyan en lo mismo, ya que
+corren cientos de partidas contra un `PrintStream` vacío.
+
+Ésta es la separación de responsabilidades que va a permitir agregar la interfaz
+Swing más adelante sin tocar los algoritmos: la vista de consola y la vista
+gráfica van a ser dos observadores del mismo proceso.
+
 ## 7. Protección del secreto humano
 
 El personaje del humano se elige mentalmente y nunca se guarda en una variable.
@@ -392,10 +468,12 @@ Se eligen dos secretos distintos. En cada turno se muestran:
 6. resolución de los 23 secretos posibles;
 7. que las tres personalidades resuelvan los 23 secretos sin que arriesgar
    elimine nunca al personaje correcto;
-8. presencia del proceso completo en la traza de partida.
+8. que dos partidas contra el mismo secreto produzcan trazas idénticas, o sea
+   que la máquina no tenga ninguna decisión al azar;
+9. presencia del proceso completo en la traza de partida.
 
 Las pruebas no necesitan Maven, Gradle ni librerías externas. Se ejecutan con
-`.\probar.ps1` y deben mostrar `OK - 8 pruebas superadas.`
+`.\probar.ps1` y deben mostrar `OK - 9 pruebas superadas.`
 
 ## 11. Estructura del proyecto
 

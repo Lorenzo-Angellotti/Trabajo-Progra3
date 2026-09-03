@@ -26,6 +26,7 @@ public class Funcionalidad {
     private int siguienteId;
     private ArrayList<Personaje> catalogoEnCarga;
     private String trazaInicializacion;
+    private boolean mostrarProcesoMaquina = true;
 
     public Funcionalidad() {
         this(new Scanner(System.in), new Random());
@@ -50,9 +51,11 @@ public class Funcionalidad {
             System.out.println("2. Maquina vs Maquina");
             System.out.println("3. Ver los 23 personajes");
             System.out.println("4. Ver como la maquina inicializo y ordeno");
+            System.out.println("5. Mostrar el razonamiento de la maquina: "
+                    + (mostrarProcesoMaquina ? "SI" : "NO"));
             System.out.println("0. Salir");
 
-            opcion = leerEntero("Elija una opcion: ", 0, 4);
+            opcion = leerEntero("Elija una opcion: ", 0, 5);
 
             switch (opcion) {
                 case 1:
@@ -66,6 +69,9 @@ public class Funcionalidad {
                     break;
                 case 4:
                     mostrarInicializacion();
+                    break;
+                case 5:
+                    alternarProceso();
                     break;
                 default:
                     System.out.println("Fin del juego.");
@@ -244,21 +250,21 @@ public class Funcionalidad {
         elegido.setElegido(true);
 
         SecretoMaquina secretoDeLaMaquina = new SecretoMaquina(elegido);
-        Personalidad personalidad = elegirPersonalidadAlAzar();
+        Personalidad personalidad = elegirRival();
         JugadorMaquina maquina = new JugadorMaquina(
-                "Maquina", personajes, preguntas,
-                new Random(random.nextLong()), personalidad);
+                "Maquina", personajes, preguntas, personalidad);
         ArrayList<Personaje> candidatosDelHumano = new ArrayList<>(personajes);
         boolean[] preguntasUsadasPorHumano = new boolean[preguntas.length];
         Respondedor secretoDelHumano = crearRespondedorHumano();
 
         System.out.println("\n=== HUMANO VS MAQUINA ===");
-        System.out.println("Personalidad de la maquina: "
-                + personalidad.getNombre()
-                + " (se la juega cada " + personalidad.getPreguntasEntreApuestas()
+        System.out.println("Rival: maquina " + personalidad.getNombre()
+                + ". Usa Greedy para elegir la pregunta (minimiza el peor caso) "
+                + "y se la juega cada "
+                + personalidad.getPreguntasEntreApuestas()
                 + " preguntas si quedan "
                 + personalidad.candidatosMaximosParaApostar()
-                + " candidatos o menos)");
+                + " candidatos o menos.");
         mostrarCatalogoResumido();
         System.out.println("\nElija mentalmente un personaje de la lista.");
         System.out.println("No debe escribir su ID: la maquina no guardara su secreto.");
@@ -278,7 +284,7 @@ public class Funcionalidad {
 
             System.out.println("\n--- Turno de la maquina ---");
             boolean ganoMaquina = maquina.jugarTurno(
-                    secretoDelHumano, false, System.out);
+                    secretoDelHumano, mostrarProcesoMaquina, System.out);
 
             if (ganoMaquina) {
                 System.out.println("Gano la maquina.");
@@ -369,21 +375,25 @@ public class Funcionalidad {
         SecretoMaquina respondedorA = new SecretoMaquina(secretoA);
         SecretoMaquina respondedorB = new SecretoMaquina(secretoB);
 
-        // Personalidades distintas para que se note el contraste de criterios.
+        /*
+         * Las dos maquinas aplican el mismo criterio Greedy para elegir la
+         * pregunta y se diferencian en el umbral de riesgo con el que deciden
+         * dejar de preguntar y jugarsela.
+         */
         JugadorMaquina maquinaA = new JugadorMaquina(
-                "Maquina A", personajes, preguntas,
-                new Random(random.nextLong()), Personalidad.CAUTELOSA);
+                "Maquina A", personajes, preguntas, Personalidad.CAUTELOSA);
         JugadorMaquina maquinaB = new JugadorMaquina(
-                "Maquina B", personajes, preguntas,
-                new Random(random.nextLong()), Personalidad.AUDAZ);
+                "Maquina B", personajes, preguntas, Personalidad.AUDAZ);
 
         System.out.println("\n=== MAQUINA VS MAQUINA ===");
         System.out.println("Los secretos son distintos y se revelaran al finalizar.");
         System.out.println("Se mostrara todo el proceso GREEDY de cada turno.");
-        System.out.println("Maquina A juega con personalidad "
-                + maquinaA.getPersonalidad().getNombre()
-                + " y Maquina B con personalidad "
-                + maquinaB.getPersonalidad().getNombre() + ".");
+        System.out.println("Ambas eligen la pregunta con el mismo criterio "
+                + "Greedy: minimizar el peor caso.");
+        System.out.println("Maquina A es " + maquinaA.getPersonalidad().getNombre()
+                + " y Maquina B es " + maquinaB.getPersonalidad().getNombre()
+                + ": se diferencian en el umbral de riesgo con el que deciden "
+                + "jugarsela.");
 
         for (int turno = 1; turno <= 100; turno++) {
             boolean juegaA = turno % 2 != 0;
@@ -437,9 +447,23 @@ public class Funcionalidad {
         }
     }
 
-    private Personalidad elegirPersonalidadAlAzar() {
+    /*
+     * El rival no se sortea: lo elige el jugador. Asi queda explicito contra
+     * que criterio esta jugando y se puede comparar una maquina con la otra.
+     */
+    private Personalidad elegirRival() {
         Personalidad[] opciones = Personalidad.values();
-        return opciones[random.nextInt(opciones.length)];
+        System.out.println("\nContra que maquina queres jugar?");
+
+        for (int i = 0; i < opciones.length; i++) {
+            System.out.println((i + 1) + ". " + opciones[i].getNombre()
+                    + " - arriesga cada " + opciones[i].getPreguntasEntreApuestas()
+                    + " preguntas si quedan "
+                    + opciones[i].candidatosMaximosParaApostar()
+                    + " candidatos o menos");
+        }
+
+        return opciones[leerEntero("Elija rival: ", 1, opciones.length) - 1];
     }
 
     private Personaje elegirAleatoriamente() {
@@ -495,6 +519,19 @@ public class Funcionalidad {
 
             System.out.println(personaje.mostrarResumen());
         }
+    }
+
+    /*
+     * Separacion de responsabilidades: la consola de razonamiento se puede
+     * apagar y el juego sigue funcionando igual. La logica no depende de que
+     * se imprima nada; la salida es solo un observador del proceso.
+     */
+    private void alternarProceso() {
+        mostrarProcesoMaquina = !mostrarProcesoMaquina;
+        System.out.println("\nRazonamiento de la maquina en consola: "
+                + (mostrarProcesoMaquina ? "ACTIVADO" : "SILENCIADO"));
+        System.out.println("El juego funciona igual en ambos modos: la logica "
+                + "no depende de la salida por consola.");
     }
 
     private void mostrarInicializacion() {

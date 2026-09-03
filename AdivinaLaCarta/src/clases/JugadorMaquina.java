@@ -2,14 +2,20 @@ package clases;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Random;
 
+/*
+ * Una maquina virtual del juego.
+ *
+ * IMPORTANTE: esta clase no tiene ninguna fuente de azar. Todas sus decisiones
+ * (que pregunta hacer, cuando arriesgar y a quien apostar) se derivan de un
+ * criterio explicito y quedan registradas en la consola. Dos partidas con el
+ * mismo secreto producen exactamente la misma secuencia de jugadas.
+ */
 public class JugadorMaquina {
     private final String nombre;
     private final ArrayList<Personaje> candidatos;
     private final Pregunta[] preguntas;
     private final boolean[] preguntasUsadas;
-    private final Random random;
     private final Comodin selectorGreedy;
     private final Personalidad personalidad;
     private boolean sinCandidatos;
@@ -17,21 +23,18 @@ public class JugadorMaquina {
 
     public JugadorMaquina(String nombre,
                           ArrayList<Personaje> personajes,
-                          Pregunta[] preguntas,
-                          Random random) {
-        this(nombre, personajes, preguntas, random, Personalidad.NORMAL);
+                          Pregunta[] preguntas) {
+        this(nombre, personajes, preguntas, Personalidad.NORMAL);
     }
 
     public JugadorMaquina(String nombre,
                           ArrayList<Personaje> personajes,
                           Pregunta[] preguntas,
-                          Random random,
                           Personalidad personalidad) {
         this.nombre = nombre;
         this.candidatos = new ArrayList<>(personajes);
         this.preguntas = preguntas;
         this.preguntasUsadas = new boolean[preguntas.length];
-        this.random = random;
         this.selectorGreedy = new Comodin();
         this.personalidad = personalidad;
         this.sinCandidatos = false;
@@ -65,7 +68,7 @@ public class JugadorMaquina {
         }
 
         Pregunta pregunta = selectorGreedy.elegirMejorPregunta(
-                candidatos, preguntas, preguntasUsadas, random,
+                candidatos, preguntas, preguntasUsadas,
                 mostrarProcesoCompleto, salida);
 
         if (pregunta == null) {
@@ -116,15 +119,30 @@ public class JugadorMaquina {
     }
 
     /*
-     * Todos los candidatos que quedan son igual de probables, asi que la
-     * eleccion es al azar. Si falla, ese candidato se descarta: la apuesta
-     * perdida igual aporta informacion.
+     * Que candidato arriesgar.
+     *
+     * Todos los candidatos que sobreviven son equiprobables: cada uno tiene
+     * probabilidad 1/k de ser el secreto, asi que NINGUNA eleccion es mejor
+     * que otra en terminos de acierto. Como no hay criterio que domine, se
+     * toma el de menor ID, es decir el primero de la lista que dejo ordenada
+     * el MergeSort.
+     *
+     * No se sortea: una apuesta al azar seria indefendible frente a la
+     * pregunta "que criterio usaste". Elegir el primero de la lista ordenada
+     * hace que la partida sea reproducible y que la decision se pueda auditar
+     * desde la consola.
+     *
+     * Si la apuesta falla, ese candidato se descarta: la apuesta perdida igual
+     * aporta informacion.
      */
     private boolean apostar(Respondedor rival, PrintStream salida, String motivo) {
-        Personaje supuesto = candidatos.get(random.nextInt(candidatos.size()));
+        Personaje supuesto = elegirCandidatoAApostar();
         boolean acierto = rival.confirmarPersonaje(supuesto);
 
-        salida.println(motivo + ": es el " + supuesto.getId()
+        salida.printf("%s: quedan %d candidatos equiprobables (%.1f%% cada uno), "
+                        + "se apuesta al de menor ID.%n",
+                motivo, candidatos.size(), 100.0 / candidatos.size());
+        salida.println("  Es el " + supuesto.getId()
                 + " - " + supuesto.getNombre() + "?"
                 + (acierto ? " -> CORRECTA" : " -> INCORRECTA"));
 
@@ -135,6 +153,19 @@ public class JugadorMaquina {
         }
 
         return acierto;
+    }
+
+    /* Menor ID = primero de la lista que ordeno el MergeSort. */
+    private Personaje elegirCandidatoAApostar() {
+        Personaje menor = candidatos.get(0);
+
+        for (Personaje candidato : candidatos) {
+            if (candidato.getId() < menor.getId()) {
+                menor = candidato;
+            }
+        }
+
+        return menor;
     }
 
     public Personalidad getPersonalidad() {

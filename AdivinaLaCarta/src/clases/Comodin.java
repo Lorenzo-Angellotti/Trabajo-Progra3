@@ -2,7 +2,6 @@ package clases;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Random;
 
 public class Comodin {
 
@@ -11,18 +10,38 @@ public class Comodin {
      * mayor grupo que podria quedar. No reconsidera preguntas anteriores.
      * Si varias preguntas son igualmente buenas, elige una al azar.
      */
+    /*
+     * Seleccion Greedy de la proxima pregunta.
+     *
+     * Criterio: minimizar el peor caso, es decir min( max(si, no) ). Se elige
+     * la pregunta que deja el grupo restante mas chico en la peor respuesta
+     * posible. Es la particion balanceada, el mismo principio que aparece en
+     * el codigo de Huffman.
+     *
+     * Ante empate NO se sortea: se desempata con dos reglas fijas, en orden.
+     *
+     *   1) Se prefiere un filtro de los que lista la consigna sobre uno de los
+     *      atributos declarados por el grupo. Ante igualdad de puntaje las dos
+     *      preguntas sirven lo mismo, asi que se privilegia la consigna.
+     *   2) Si el empate persiste, se toma la primera en el orden declarado.
+     *
+     * De esta forma cada partida es reproducible y toda eleccion es auditable
+     * desde la consola: no hay ninguna decision tomada al azar.
+     */
     public Pregunta elegirMejorPregunta(ArrayList<Personaje> candidatos,
                                         Pregunta[] preguntas,
                                         boolean[] preguntasUsadas,
-                                        Random random,
                                         boolean mostrarProceso,
                                         PrintStream salida) {
 
-        ArrayList<Pregunta> mejoresPreguntas = new ArrayList<>();
+        Pregunta elegida = null;
         int mejorPeorCaso = Integer.MAX_VALUE;
+        boolean elegidaEsDeConsigna = false;
+        int empatadas = 0;
 
         if (mostrarProceso) {
-            salida.println("Evaluacion GREEDY de las preguntas:");
+            salida.println("Evaluacion GREEDY "
+                    + "(criterio: minimizar el peor caso)");
         }
 
         for (int i = 0; i < preguntas.length; i++) {
@@ -33,16 +52,15 @@ public class Comodin {
             Pregunta pregunta = preguntas[i];
             int cantidadSi = contarRespuestasSi(candidatos, pregunta);
             int cantidadNo = candidatos.size() - cantidadSi;
-            int peorCaso = Math.max(cantidadSi, cantidadNo);
-            int desequilibrio = Math.abs(cantidadSi - cantidadNo);
             boolean divide = cantidadSi > 0 && cantidadNo > 0;
+            int peorCaso = Math.max(cantidadSi, cantidadNo);
 
             if (mostrarProceso) {
                 salida.println("  " + pregunta.getTexto()
                         + " | si=" + cantidadSi
                         + ", no=" + cantidadNo
                         + ", peor caso=" + peorCaso
-                        + ", desequilibrio=" + desequilibrio
+                        + (pregunta.isDeConsigna() ? " [consigna]" : "")
                         + (divide ? "" : " | no divide candidatos"));
             }
 
@@ -50,25 +68,40 @@ public class Comodin {
                 continue;
             }
 
-            if (peorCaso < mejorPeorCaso) {
+            boolean esDeConsigna = pregunta.isDeConsigna();
+            boolean mejora = peorCaso < mejorPeorCaso;
+            boolean desempataPorConsigna = peorCaso == mejorPeorCaso
+                    && esDeConsigna && !elegidaEsDeConsigna;
+
+            if (peorCaso == mejorPeorCaso) {
+                empatadas++;
+            }
+
+            if (mejora) {
                 mejorPeorCaso = peorCaso;
-                mejoresPreguntas.clear();
-                mejoresPreguntas.add(pregunta);
-            } else if (peorCaso == mejorPeorCaso) {
-                mejoresPreguntas.add(pregunta);
+                elegida = pregunta;
+                elegidaEsDeConsigna = esDeConsigna;
+                empatadas = 1;
+            } else if (desempataPorConsigna) {
+                elegida = pregunta;
+                elegidaEsDeConsigna = true;
             }
         }
 
-        if (mejoresPreguntas.isEmpty()) {
+        if (elegida == null) {
             return null;
         }
 
-        Pregunta elegida = mejoresPreguntas.get(
-                random.nextInt(mejoresPreguntas.size()));
-
-        if (mostrarProceso && mejoresPreguntas.size() > 1) {
-            salida.println("Hay " + mejoresPreguntas.size()
-                    + " preguntas optimas empatadas. Se elige una al azar.");
+        if (mostrarProceso) {
+            salida.println("Elegida: " + elegida.getTexto()
+                    + " (peor caso=" + mejorPeorCaso
+                    + (empatadas > 1
+                        ? "; hubo " + empatadas + " empatadas, se desempato por "
+                          + (elegidaEsDeConsigna
+                             ? "filtro de la consigna"
+                             : "orden declarado")
+                        : "")
+                    + ")");
         }
 
         return elegida;

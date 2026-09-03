@@ -34,6 +34,7 @@ public class Pruebas {
         probarEleccionGreedy(juego);
         probarTodosLosSecretos(juego);
         probarPersonalidades(juego);
+        probarDeterminismo(juego);
         probarTrazaCompleta(juego);
 
         System.out.println("OK - " + cantidadPruebas + " pruebas superadas.");
@@ -126,7 +127,7 @@ public class Pruebas {
         PrintStream salidaVacia = new PrintStream(new ByteArrayOutputStream());
 
         Pregunta elegida = selector.elegirMejorPregunta(
-                personajes, preguntas, usadas, new Random(50),
+                personajes, preguntas, usadas,
                 false, salidaVacia);
 
         int mejorPeorCaso = Integer.MAX_VALUE;
@@ -157,8 +158,7 @@ public class Pruebas {
 
         for (Personaje secreto : personajes) {
             JugadorMaquina maquina = new JugadorMaquina(
-                    "Prueba", personajes, preguntas,
-                    new Random(1000L + secreto.getId()));
+                    "Prueba", personajes, preguntas);
             SecretoMaquina respondedor = new SecretoMaquina(secreto);
             boolean gano = false;
 
@@ -191,7 +191,7 @@ public class Pruebas {
             for (Personaje secreto : personajes) {
                 JugadorMaquina maquina = new JugadorMaquina(
                         "Prueba", personajes, preguntas,
-                        new Random(500L + secreto.getId()), personalidad);
+                        personalidad);
                 SecretoMaquina respondedor = new SecretoMaquina(secreto);
                 boolean gano = false;
 
@@ -210,13 +210,42 @@ public class Pruebas {
         aprobada();
     }
 
+    /*
+     * La maquina no tiene ninguna fuente de azar: dos partidas contra el mismo
+     * secreto deben producir exactamente la misma traza, jugada por jugada.
+     */
+    private void probarDeterminismo(Funcionalidad juego) {
+        ArrayList<Personaje> personajes = juego.getPersonajes();
+        Pregunta[] preguntas = juego.getPreguntas();
+        String[] trazas = new String[2];
+
+        for (int intento = 0; intento < 2; intento++) {
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            PrintStream salida = new PrintStream(bytes, true, StandardCharsets.UTF_8);
+            JugadorMaquina maquina = new JugadorMaquina(
+                    "Prueba", personajes, preguntas, Personalidad.NORMAL);
+            SecretoMaquina respondedor = new SecretoMaquina(personajes.get(4));
+            boolean gano = false;
+
+            for (int turno = 0; turno < 40 && !gano; turno++) {
+                gano = maquina.jugarTurno(respondedor, true, salida);
+            }
+
+            trazas[intento] = bytes.toString(StandardCharsets.UTF_8);
+        }
+
+        verificar(trazas[0].equals(trazas[1]),
+                "Dos partidas identicas dieron trazas distintas: la maquina "
+                        + "tiene alguna decision al azar");
+        aprobada();
+    }
+
     private void probarTrazaCompleta(Funcionalidad juego) {
         ArrayList<Personaje> personajes = juego.getPersonajes();
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         PrintStream salida = new PrintStream(bytes, true, StandardCharsets.UTF_8);
         JugadorMaquina maquina = new JugadorMaquina(
-                "Maquina de prueba", personajes, juego.getPreguntas(),
-                new Random(2026));
+                "Maquina de prueba", personajes, juego.getPreguntas());
         SecretoMaquina secreto = new SecretoMaquina(personajes.get(10));
         boolean gano = false;
 

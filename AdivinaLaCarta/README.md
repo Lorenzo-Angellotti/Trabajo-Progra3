@@ -55,7 +55,7 @@ ejecutar `Main.java`.
 ```
 
 Las pruebas no necesitan Maven, Gradle ni librerías externas. Deben mostrar
-`OK - 8 pruebas superadas.`
+`OK - 9 pruebas superadas.`
 
 ## Documentación
 

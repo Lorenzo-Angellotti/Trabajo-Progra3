@@ -22,6 +22,20 @@ public class Pregunta {
         this.texto = texto;
     }
 
+    /*
+     * Distingue los seis filtros que lista la consigna de los seis atributos
+     * que declaro el grupo. Se usa para desempatar la seleccion Greedy sin
+     * recurrir al azar: ante igual puntaje se prefiere el de la consigna.
+     */
+    public boolean isDeConsigna() {
+        return codigo == GENERO_MASCULINO
+                || codigo == CALVICIE
+                || codigo == LENTES
+                || codigo == PELO_COLORADO
+                || codigo == PELO_NEGRO
+                || codigo == PELO_AMARILLO;
+    }
+
     public int getCodigo() {
         return codigo;
     }
