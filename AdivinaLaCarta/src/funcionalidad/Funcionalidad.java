@@ -540,8 +540,13 @@ public class Funcionalidad {
         System.out.println("Etapa 2: MergeSort, Theta(n log n) en todos los casos.");
     }
 
+    /*
+     * La lista se muestra tal como la dejo el MergeSort de la Etapa 2:
+     * ordenada por ID de forma autoincremental.
+     */
     private void mostrarCatalogoCompleto() {
-        System.out.println("\nLos personajes estan ordenados por genero:");
+        System.out.println("\nLos " + personajes.size() + " personajes, "
+                + "ordenados por ID tal como los dejo el MergeSort:");
 
         for (Personaje personaje : personajes) {
             System.out.println(personaje.mostrarDetalle());
