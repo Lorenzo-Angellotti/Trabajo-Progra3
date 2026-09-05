@@ -1,9 +1,11 @@
 import clases.JugadorMaquina;
 import clases.Personaje;
+import clases.Personalidad;
 import clases.Pregunta;
 import clases.SecretoMaquina;
-import clases.buscador;
-import clases.comodin;
+import clases.Buscador;
+import funcionalidad.Funcionalidad;
+import clases.Comodin;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -22,41 +24,35 @@ public class Pruebas {
     }
 
     private void ejecutar() {
-        funcionalidad juego = new funcionalidad(new Scanner(""), new Random(1));
+        Funcionalidad juego = new Funcionalidad(new Scanner(""), new Random(1));
         juego.prepararJuego();
 
         probarCantidadOrdenIdsYBusqueda(juego);
+        probarOrdenamientoConVariasSemillas();
+        probarTrazaDeInicializacion();
         probarFirmasDiferentes(juego);
         probarEleccionGreedy(juego);
         probarTodosLosSecretos(juego);
+        probarPersonalidades(juego);
+        probarDeterminismo(juego);
         probarTrazaCompleta(juego);
 
         System.out.println("OK - " + cantidadPruebas + " pruebas superadas.");
     }
 
-    private void probarCantidadOrdenIdsYBusqueda(funcionalidad juego) {
+    private void probarCantidadOrdenIdsYBusqueda(Funcionalidad juego) {
         ArrayList<Personaje> personajes = juego.getPersonajes();
-        buscador buscadorPersonajes = new buscador();
+        Buscador buscadorPersonajes = new Buscador();
 
         verificar(personajes.size() == 23, "Deben existir 23 personajes");
 
-        boolean aparecioMasculino = false;
-        int ultimoIdFemenino = 0;
-        int ultimoIdMasculino = 0;
+        // Tras la Etapa 2 (MergeSort) la lista debe quedar autoincremental.
+        for (int i = 0; i < personajes.size(); i++) {
+            Personaje personaje = personajes.get(i);
 
-        for (Personaje personaje : personajes) {
-            if (personaje.isGeneroMasculino()) {
-                aparecioMasculino = true;
-                verificar(personaje.getId() > ultimoIdMasculino,
-                        "Los IDs masculinos no estan ordenados");
-                ultimoIdMasculino = personaje.getId();
-            } else {
-                verificar(!aparecioMasculino,
-                        "El ArrayList no esta agrupado por genero");
-                verificar(personaje.getId() > ultimoIdFemenino,
-                        "Los IDs femeninos no estan ordenados");
-                ultimoIdFemenino = personaje.getId();
-            }
+            verificar(personaje.getId() == i + 1,
+                    "MergeSort no dejo la lista autoincremental: en la posicion "
+                            + i + " hay el ID " + personaje.getId());
 
             Personaje encontrado = buscadorPersonajes.buscarPorId(
                     personajes, personaje.getId());
@@ -69,7 +65,44 @@ public class Pruebas {
         aprobada();
     }
 
-    private void probarFirmasDiferentes(funcionalidad juego) {
+    /*
+     * La caja se baraja distinto en cada partida. MergeSort tiene que dejar
+     * la lista autoincremental sin importar como haya salido el desorden.
+     */
+    private void probarOrdenamientoConVariasSemillas() {
+        for (long semilla = 0; semilla < 200; semilla++) {
+            Funcionalidad juego = new Funcionalidad(
+                    new Scanner(""), new Random(semilla));
+            juego.prepararJuego();
+            ArrayList<Personaje> personajes = juego.getPersonajes();
+
+            verificar(personajes.size() == 23,
+                    "Faltan personajes con la semilla " + semilla);
+
+            for (int i = 0; i < personajes.size(); i++) {
+                verificar(personajes.get(i).getId() == i + 1,
+                        "MergeSort fallo con la semilla " + semilla
+                                + " en la posicion " + i);
+            }
+        }
+
+        aprobada();
+    }
+
+    /* La consigna pide poder ver los procesos que hace la maquina. */
+    private void probarTrazaDeInicializacion() {
+        Funcionalidad juego = new Funcionalidad(new Scanner(""), new Random(7));
+        juego.prepararJuego();
+        String traza = juego.getTrazaInicializacion();
+
+        verificar(traza != null, "No se guardo la traza de inicializacion");
+        verificar(traza.contains("ETAPA 0"), "Falta la etapa de la caja volcada");
+        verificar(traza.contains("ETAPA 1"), "Falta la etapa de agrupar por genero");
+        verificar(traza.contains("ETAPA 2"), "Falta la etapa de MergeSort");
+        aprobada();
+    }
+
+    private void probarFirmasDiferentes(Funcionalidad juego) {
         Set<String> firmas = new HashSet<>();
 
         for (Personaje p : juego.getPersonajes()) {
@@ -86,15 +119,15 @@ public class Pruebas {
         aprobada();
     }
 
-    private void probarEleccionGreedy(funcionalidad juego) {
+    private void probarEleccionGreedy(Funcionalidad juego) {
         ArrayList<Personaje> personajes = juego.getPersonajes();
         Pregunta[] preguntas = juego.getPreguntas();
-        comodin selector = new comodin();
+        Comodin selector = new Comodin();
         boolean[] usadas = new boolean[preguntas.length];
         PrintStream salidaVacia = new PrintStream(new ByteArrayOutputStream());
 
         Pregunta elegida = selector.elegirMejorPregunta(
-                personajes, preguntas, usadas, new Random(50),
+                personajes, preguntas, usadas,
                 false, salidaVacia);
 
         int mejorPeorCaso = Integer.MAX_VALUE;
@@ -114,19 +147,18 @@ public class Pruebas {
                 siElegida, personajes.size() - siElegida);
 
         verificar(peorCasoElegido == mejorPeorCaso,
-                "El comodin greedy no eligio el optimo local");
+                "El Comodin greedy no eligio el optimo local");
         aprobada();
     }
 
-    private void probarTodosLosSecretos(funcionalidad juego) {
+    private void probarTodosLosSecretos(Funcionalidad juego) {
         ArrayList<Personaje> personajes = juego.getPersonajes();
         Pregunta[] preguntas = juego.getPreguntas();
         PrintStream salidaVacia = new PrintStream(new ByteArrayOutputStream());
 
         for (Personaje secreto : personajes) {
             JugadorMaquina maquina = new JugadorMaquina(
-                    "Prueba", personajes, preguntas,
-                    new Random(1000L + secreto.getId()));
+                    "Prueba", personajes, preguntas);
             SecretoMaquina respondedor = new SecretoMaquina(secreto);
             boolean gano = false;
 
@@ -142,13 +174,78 @@ public class Pruebas {
         aprobada();
     }
 
-    private void probarTrazaCompleta(funcionalidad juego) {
+    /*
+     * Arriesgar no puede romper el juego: con cualquier personalidad la
+     * maquina tiene que seguir resolviendo los 23 secretos posibles.
+     */
+    private void probarPersonalidades(Funcionalidad juego) {
+        ArrayList<Personaje> personajes = juego.getPersonajes();
+        Pregunta[] preguntas = juego.getPreguntas();
+        PrintStream salidaVacia = new PrintStream(new ByteArrayOutputStream());
+
+        for (Personalidad personalidad : Personalidad.values()) {
+            verificar(personalidad.candidatosMaximosParaApostar() >= 2,
+                    "La personalidad " + personalidad.getNombre()
+                            + " nunca arriesgaria antes de tener certeza");
+
+            for (Personaje secreto : personajes) {
+                JugadorMaquina maquina = new JugadorMaquina(
+                        "Prueba", personajes, preguntas,
+                        personalidad);
+                SecretoMaquina respondedor = new SecretoMaquina(secreto);
+                boolean gano = false;
+
+                for (int turno = 0; turno < 40 && !gano; turno++) {
+                    gano = maquina.jugarTurno(respondedor, false, salidaVacia);
+                    verificar(!maquina.isSinCandidatos(),
+                            "Se elimino el secreto " + secreto.getNombre()
+                                    + " con personalidad " + personalidad.getNombre());
+                }
+
+                verificar(gano, "La personalidad " + personalidad.getNombre()
+                        + " no encontro a " + secreto.getNombre());
+            }
+        }
+
+        aprobada();
+    }
+
+    /*
+     * La maquina no tiene ninguna fuente de azar: dos partidas contra el mismo
+     * secreto deben producir exactamente la misma traza, jugada por jugada.
+     */
+    private void probarDeterminismo(Funcionalidad juego) {
+        ArrayList<Personaje> personajes = juego.getPersonajes();
+        Pregunta[] preguntas = juego.getPreguntas();
+        String[] trazas = new String[2];
+
+        for (int intento = 0; intento < 2; intento++) {
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            PrintStream salida = new PrintStream(bytes, true, StandardCharsets.UTF_8);
+            JugadorMaquina maquina = new JugadorMaquina(
+                    "Prueba", personajes, preguntas, Personalidad.NORMAL);
+            SecretoMaquina respondedor = new SecretoMaquina(personajes.get(4));
+            boolean gano = false;
+
+            for (int turno = 0; turno < 40 && !gano; turno++) {
+                gano = maquina.jugarTurno(respondedor, true, salida);
+            }
+
+            trazas[intento] = bytes.toString(StandardCharsets.UTF_8);
+        }
+
+        verificar(trazas[0].equals(trazas[1]),
+                "Dos partidas identicas dieron trazas distintas: la maquina "
+                        + "tiene alguna decision al azar");
+        aprobada();
+    }
+
+    private void probarTrazaCompleta(Funcionalidad juego) {
         ArrayList<Personaje> personajes = juego.getPersonajes();
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         PrintStream salida = new PrintStream(bytes, true, StandardCharsets.UTF_8);
         JugadorMaquina maquina = new JugadorMaquina(
-                "Maquina de prueba", personajes, juego.getPreguntas(),
-                new Random(2026));
+                "Maquina de prueba", personajes, juego.getPreguntas());
         SecretoMaquina secreto = new SecretoMaquina(personajes.get(10));
         boolean gano = false;
 

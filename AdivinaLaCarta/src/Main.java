@@ -1,3 +1,5 @@
+import funcionalidad.Funcionalidad;
+
 public class Main {
     public static void main(String[] args) {
         Main juego = new Main();
@@ -5,7 +7,7 @@ public class Main {
     }
 
     public void iniciarJuego() {
-        funcionalidad juego = new funcionalidad();
+        Funcionalidad juego = new Funcionalidad();
         juego.iniciarJuego();
     }
 }
