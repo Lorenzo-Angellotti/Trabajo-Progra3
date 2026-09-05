@@ -1,17 +1,19 @@
 # Adivina la Carta
 
-Segunda implementación del trabajo de Programación III, construida a partir de
-la guía inicial del alumno.
+Juego de deducción por consola sobre un tablero de 23 superhéroes. Cada jugador
+tiene un personaje secreto y gana el primero que descubre el del rival, ya sea
+haciendo preguntas por atributo o arriesgando un nombre. Se puede jugar Humano
+contra Máquina o Máquina contra Máquina.
 
-Se conservaron las ideas originales:
+Estructura del proyecto:
 
 - `Main` inicia el juego;
 - `Funcionalidad` contiene el flujo principal;
 - `Personaje` es una clase tradicional con atributos, constructor y getters;
 - los personajes se guardan en un `ArrayList`;
-- `Buscador` y `Comodin`, que estaban preparados como clases auxiliares, ahora
-  implementan Divide y Conquista y Greedy respectivamente;
-- se mantiene el método `adivinar(int id)` de la primera versión.
+- `Ordenador` y `Buscador` implementan Divide y Conquista;
+- `Comodin` y `Personalidad` implementan las dos decisiones Greedy;
+- `adivinar(int id)` resuelve una suposición directa por ID.
 
 ## Algoritmos aplicados
 
@@ -24,8 +26,8 @@ Se conservaron las ideas originales:
 | Preguntar o jugársela | Greedy | `Personalidad` | `Θ(1)` por turno |
 
 Los personajes **arrancan desordenados** y es la máquina la que los agrupa por
-género y los deja en una lista autoincremental, como pide la consigna. La opción
-4 del menú muestra ese proceso paso a paso.
+género y los deja en una lista autoincremental. La opción 4 del menú muestra ese
+proceso paso a paso.
 
 ## Ejecutar
 
@@ -41,8 +43,8 @@ Desde bash (Linux o macOS):
 ./ejecutar.sh
 ```
 
-También se puede abrir `AdivinaLaCarta.iml` directamente con IntelliJ IDEA y
-ejecutar `Main.java`.
+También se puede abrir la carpeta `AdivinaLaCarta` como proyecto en IntelliJ
+IDEA y ejecutar `Main.java`.
 
 ## Probar
 

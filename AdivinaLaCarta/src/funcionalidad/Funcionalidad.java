@@ -171,7 +171,7 @@ public class Funcionalidad {
                 false, true, false, false, false, ColorPelo.COLORADO, true);
         agregarPersonaje("Doctor Strange", true, true, true,
                 false, false, true, false, false, ColorPelo.NEGRO, true);
-        agregarPersonaje("Shuri (Pantera Negra)", false, true, false,
+        agregarPersonaje("Pantera Negra (Shuri)", false, true, false,
                 true, true, false, false, false, ColorPelo.NEGRO, true);
         agregarPersonaje("Deadpool (Wade Wilson)", true, true, false,
                 true, true, false, false, true, ColorPelo.NEGRO, true);

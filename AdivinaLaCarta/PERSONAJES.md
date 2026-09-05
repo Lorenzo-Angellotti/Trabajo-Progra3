@@ -16,7 +16,7 @@ después los ordena por ID con MergeSort. Ver la sección 3 de
 | 6 | Jean Grey | F | Sí | No | No | No | Sí | No | No | Colorado | Marvel |
 | 7 | Viuda Negra (Natasha Romanoff) | F | No | No | No | Sí | No | No | No | Colorado | Marvel |
 | 8 | Doctor Strange | M | Sí | Sí | No | No | Sí | No | No | Negro | Marvel |
-| 9 | Shuri (Pantera Negra) | F | Sí | No | Sí | Sí | No | No | No | Negro | Marvel |
+| 9 | Pantera Negra (Shuri) | F | Sí | No | Sí | Sí | No | No | No | Negro | Marvel |
 | 10 | Deadpool (Wade Wilson) | M | Sí | No | Sí | Sí | No | No | Sí | — | Marvel |
 | 11 | Avispa (Janet van Dyne) | F | Sí | No | Sí | No | Sí | No | No | Negro | Marvel |
 | 12 | Profesor X (Charles Xavier) | M | Sí | No | No | No | No | No | Sí | — | Marvel |
@@ -57,18 +57,6 @@ Las decisiones potencialmente discutibles se fijaron de esta manera:
 - Los tres personajes con calvicie son casos canónicos y no forzados: el
   Profesor X es calvo por definición del personaje, Deadpool por sus cicatrices
   y Cyborg por sus placas metálicas.
-
-## Cambios respecto de la lista inicial
-
-- **Groot fue reemplazado por el Profesor X.** Groot es un árbol: no sólo el
-  color de pelo no le aplica, tampoco le aplica la calvicie. Estaba forzando dos
-  atributos a la vez. El Profesor X es el ejemplo canónico de calvicie, es
-  Marvel y es masculino, así que no altera el balance de universos ni de género.
-- **Wolverine, Ant-Man, Star-Lord, Pantera Negra, Linterna Verde, Shazam, Green
-  Arrow y Atom** fueron reemplazados por Jean Grey, Avispa, Gamora, Shuri, Chica
-  Halcón, Supergirl, Canario Negro y Batgirl, para equilibrar el filtro de
-  género. Shuri sucede a T'Challa como Pantera Negra, por lo que el casillero
-  conserva su identidad y sus atributos.
 
 Los datos están concentrados en `Funcionalidad.cargarPersonajes()`, por lo que
 pueden modificarse sin cambiar Divide y Conquista, Greedy ni los turnos.
