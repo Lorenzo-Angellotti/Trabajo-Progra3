@@ -139,9 +139,13 @@ public class JugadorMaquina {
         Personaje supuesto = elegirCandidatoAApostar();
         boolean acierto = rival.confirmarPersonaje(supuesto);
 
-        salida.printf("%s: quedan %d candidatos equiprobables (%.1f%% cada uno), "
-                        + "se apuesta al de menor ID.%n",
-                motivo, candidatos.size(), 100.0 / candidatos.size());
+        if (candidatos.size() == 1) {
+            salida.println(motivo + ": queda un unico candidato posible.");
+        } else {
+            salida.printf("%s: quedan %d candidatos equiprobables "
+                            + "(%.1f%% cada uno), se apuesta al de menor ID.%n",
+                    motivo, candidatos.size(), 100.0 / candidatos.size());
+        }
         salida.println("  Es el " + supuesto.getId()
                 + " - " + supuesto.getNombre() + "?"
                 + (acierto ? " -> CORRECTA" : " -> INCORRECTA"));

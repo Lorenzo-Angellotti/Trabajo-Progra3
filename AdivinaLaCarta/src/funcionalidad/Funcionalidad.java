@@ -506,17 +506,15 @@ public class Funcionalidad {
                 + secretoB.revelarAlFinal().getNombre());
     }
 
+    /*
+     * La lista se muestra tal como la dejo el MergeSort: ordenada por ID de
+     * forma autoincremental, que es el estado que pide la consigna.
+     */
     private void mostrarCatalogoResumido() {
-        Boolean generoAnterior = null;
+        System.out.println("\n[LISTA ORDENADA POR ID - "
+                + personajes.size() + " personajes]");
 
         for (Personaje personaje : personajes) {
-            if (generoAnterior == null
-                    || generoAnterior != personaje.isGeneroMasculino()) {
-                generoAnterior = personaje.isGeneroMasculino();
-                System.out.println(generoAnterior
-                        ? "\n[GENERO MASCULINO]" : "\n[GENERO FEMENINO]");
-            }
-
             System.out.println(personaje.mostrarResumen());
         }
     }
