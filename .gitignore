@@ -1,0 +1,22 @@
+# Clases compiladas
+*.class
+AdivinaLaCarta/out/
+out/
+bin/
+build/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Eclipse / VS Code
+.classpath
+.project
+.settings/
+.vscode/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
