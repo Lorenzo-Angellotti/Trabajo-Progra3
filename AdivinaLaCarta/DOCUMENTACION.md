@@ -1,20 +1,33 @@
 # Documentación del proyecto Adivina la Carta
 
-## 1. Punto de partida
+## 1. Qué hace el proyecto
 
-La guía inicial ya tenía una estructura clara: `Main`, una lista de personajes,
-selección aleatoria, ingreso por `Scanner`, un método `adivinar` y dos clases
-auxiliares vacías llamadas `Buscador` y `Comodin`.
+`Adivina la Carta` es un juego de deducción por consola sobre un tablero de 23
+superhéroes. Cada jugador tiene un personaje secreto, y gana el primero que
+descubre el del rival.
 
-La solución terminada conserva esa forma. `Main` sigue siendo pequeño y delega
-en `Funcionalidad`. La clase `Personaje` continúa siendo una clase común con
-campos privados, constructor, getters y el atributo `elegido` de la primera
-versión. La lógica nueva se separó en clases simples dentro del paquete
-`clases`.
+En cada turno un jugador puede hacer **una sola** de estas dos cosas:
+
+- **preguntar** por un atributo, y descartar a todos los personajes cuya
+  respuesta no coincida;
+- **arriesgar** un nombre, y ganar si acierta.
+
+El turno se gasta en una o en la otra. Se puede jugar Humano contra Máquina o
+Máquina contra Máquina.
+
+El proyecto aplica dos técnicas algorítmicas:
+
+| Técnica | Dónde se usa | Clase |
+|---|---|---|
+| Divide y Conquista | Ordenar los personajes y buscarlos por ID | `Ordenador`, `Buscador` |
+| Greedy | Elegir qué preguntar y decidir cuándo arriesgar | `Comodin`, `Personalidad` |
+
+`Main` es el punto de entrada y delega en `Funcionalidad`, que coordina el menú
+y las partidas. Los algoritmos y el modelo viven en el paquete `clases`.
 
 ## 2. Personajes y atributos
 
-Los IDs respetan la lista entregada: Marvel del 1 al 13 y DC del 14 al 23.
+Los IDs van del 1 al 23: Marvel del 1 al 13 y DC del 14 al 23.
 
 Cada `Personaje` contiene:
 
@@ -23,43 +36,47 @@ Cada `Personaje` contiene:
 - `poderes`, `capa`, `mascara`, `arma`, `vuela`, `lentes` y `calvicie`;
 - `ColorPelo`: `COLORADO`, `NEGRO` o `AMARILLO`;
 - `universoMarvel` (`false` representa DC);
-- `elegido`, conservado de la guía original.
+- `elegido`, que marca al secreto en el método `adivinar(int id)`.
 
-Cuando un personaje tiene calvicie, las tres preguntas de color responden `NO`
-y el color se muestra como “No aplicable”.
-
-La matriz exacta de los 23 personajes está en [`PERSONAJES.md`](PERSONAJES.md).
+La matriz completa de los 23 personajes, con el valor de cada atributo y los
+criterios con que se asignaron, está en [`PERSONAJES.md`](PERSONAJES.md).
 
 ## 3. Inicialización: la máquina ordena los personajes
 
-La consigna pide que los personajes **empiecen ordenados únicamente según su
-género** y que sea **la máquina** quien los disponga en una lista ordenada de
-forma autoincremental. El profesor lo comparó con volcar la caja de un juego de
-mesa: las piezas salen tiradas y alguien tiene que armarlas.
+Los personajes no arrancan ordenados. Salen desordenados, como al volcar la caja
+de un juego de mesa, y **es la máquina la que tiene que armar el tablero**: los
+agrupa por género y después los deja en una lista autoincremental por ID.
 
-Por eso la inicialización ocurre en tres etapas y **ninguna depende de que los
-datos vengan pre-ordenados**:
+La inicialización ocurre en tres etapas, y ninguna depende de que los datos
+vengan pre-ordenados.
 
 ### Etapa 0 — La caja volcada
 
 `crearCatalogoCrudo()` construye los 23 personajes con sus IDs fijos y
-`Collections.shuffle(caja, random)` los desordena. El barajado usa el mismo
-`Random` del juego, así que cada partida arranca con un desorden distinto y las
-pruebas pueden reproducirlo con una semilla fija.
+`Collections.shuffle(caja, random)` los desordena.
+
+El barajado usa el mismo `Random` del juego, así que cada partida arranca con un
+desorden distinto. Las pruebas automáticas, en cambio, construyen el juego con
+una **semilla fija**, es decir un valor inicial conocido que hace que `Random`
+produzca siempre la misma secuencia: así el mismo desorden se puede reproducir
+las veces que haga falta y un fallo se puede investigar.
 
 ### Etapa 1 — Agrupar por género
 
-La máquina inserta cada personaje usando búsqueda binaria de la posición:
+La máquina inserta cada personaje buscando su posición con búsqueda binaria:
 
 ```java
 buscadorPersonajes.agregarOrdenadoPorGenero(agrupados, personaje);
 ```
 
-Las mujeres (`false`) quedan primero y los hombres (`true`) después. Éste es
-exactamente el estado *"ordenados únicamente según su género"* que describe la
-consigna. Encontrar la posición cuesta `Θ(log n)` comparaciones; insertar
-físicamente en un `ArrayList` puede desplazar elementos y cuesta `O(n)`. Se
-documentan ambos costos para no confundir búsqueda con inserción completa.
+Las mujeres (`false`) quedan primero y los hombres (`true`) después. Éste es el
+estado intermedio: la lista queda ordenada únicamente por género, sin ningún
+orden interno de IDs.
+
+Encontrar la posición cuesta `Θ(log n)` comparaciones. Insertar físicamente en
+un `ArrayList` puede desplazar elementos y cuesta `O(n)`. Se documentan los dos
+costos por separado para no confundir la búsqueda de la posición con la
+inserción completa.
 
 ### Etapa 2 — Ordenar por ID con MergeSort
 
@@ -73,16 +90,19 @@ La opción 4 del menú muestra la traza real de las tres etapas:
 
 ```text
 ETAPA 0 - La caja volcada (orden aleatorio):
-  [22, 10, 2, 14, 11, 23, 1, 18, 16, 3, 7, ...]
+  [22, 4, 19, 7, 16, 5, 1, 14, 10, 23, 15, 21, 3, 6, 8, 17, 9, 11, 2, 20, 12, 18, 13]
 ETAPA 1 - Agrupados por genero (insercion binaria, femenino primero):
-  [16, 7, 22, 10, 2, 14, 11, 23, 1, 18, 3, ...]
+  [22, 19, 7, 16, 23, 6, 9, 11, 20, 13, 4, 5, 1, 14, 10, 15, 21, 3, 8, 17, 2, 12, 18]
 ETAPA 2 - Ordenados por ID con MergeSort (lista autoincremental):
-  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ...]
+  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
 ```
+
+Esa traza se guarda durante `prepararJuego()` y no se vuelve a calcular: lo que
+se muestra es el desorden real con el que arrancó esta ejecución.
 
 ## 4. Divide y Conquista
 
-Se aplica en tres lugares distintos, en dos clases:
+Divide y Conquista se aplica en tres lugares, repartidos en dos clases:
 
 | Dónde | Qué hace | Clase | Complejidad |
 |---|---|---|---|
@@ -92,35 +112,46 @@ Se aplica en tres lugares distintos, en dos clases:
 
 ### MergeSort (`clases/Ordenador.java`)
 
-Sigue el esquema de la Clase 02: dividir el intervalo en dos mitades, ordenar
-cada una recursivamente y combinarlas con `Merge`.
+El vector se parte en dos mitades, cada una se ordena recursivamente y después
+se combinan con `Merge`, que recorre las dos mitades ya ordenadas una sola vez.
 
 ```text
 T(n) = 2·T(n/2) + Θ(n)
 ```
 
-Con `a = 2`, `b = 2` y `k = 1` estamos en el caso `a = b^k`, que da `Θ(n log n)`.
-El `Merge` recorre las dos mitades una sola vez, y ése es el `k = 1`.
+Se resuelve con el Teorema Maestro: hay `a = 2` llamadas recursivas, cada una
+sobre un subproblema `b = 2` veces más chico, y combinar cuesta `Θ(n)`, o sea
+`k = 1`. Como `a = b^k` (`2 = 2¹`), la recurrencia da **`Θ(n log n)`**.
 
-**Detalle de implementación.** En el pseudocódigo de la teoría la condición del
-`Merge` evalúa `u[i] ≤ u[j]` antes de verificar `i < mid + 1`. En la
-implementación se invirtió el orden de las condiciones para comprobar primero
-que queden elementos en cada mitad y recién después comparar los IDs.
+### Búsqueda binaria (`clases/Buscador.java`)
 
-**Errata detectada en el material de clase.** En el ejemplo de funcionamiento de
-MergeSort de la Clase 02, al hacer el merge de `[5]` y `[3]` en la rama
-izquierda, el diagrama muestra `5 3` cuando debería mostrar `3 5`. Se confirma
-con el nivel siguiente del mismo diagrama, que da `1 3 5 7 8`: el 3 ya estaba
-antes que el 5. La implementación de este proyecto produce el orden correcto.
+Se compara con el elemento del medio y se descarta media lista en cada paso.
+
+```text
+T(n) = T(n/2) + Θ(1)
+```
+
+Acá `a = 1`, `b = 2` y `k = 0`. Otra vez `a = b^k` (`1 = 2⁰`), y la recurrencia
+da **`Θ(log n)`**.
+
+Como la Etapa 2 dejó la lista ordenada por ID, adivinar un personaje concreto no
+requiere recorrerla entera: alcanza con una búsqueda binaria.
+
+### Una precisión sobre el Merge
+
+El pseudocódigo habitual del `Merge` evalúa `u[i] ≤ u[j]` antes de verificar que
+todavía queden elementos en la mitad izquierda. En esta implementación el orden
+de las condiciones está invertido: primero se comprueba que cada mitad tenga
+elementos disponibles y recién después se comparan los IDs. Es más claro de leer
+y no depende de que los índices se comporten bien por casualidad.
 
 ### Por qué MergeSort y no QuickSort
 
 **MergeSort garantiza `Θ(n log n)` en todos los casos. QuickSort no.**
 
-El `Pivot` de la Clase 02 toma `u[ini]`, el primer elemento, como pivot. Ese
-pivot cae en un extremo del subarreglo justo cuando la entrada ya viene ordenada
-o casi ordenada, y en ese caso la partición deja un lado vacío. La recurrencia
-degenera:
+QuickSort parte el vector alrededor de un pivot. Cuando el pivot es el primer
+elemento, cae en un extremo justo si la entrada ya viene ordenada o casi
+ordenada, y la partición deja un lado vacío. La recurrencia degenera:
 
 ```text
 T(n) = T(n-1) + Θ(n) = Θ(n²)
@@ -131,68 +162,112 @@ ventaja de Divide y Conquista.
 
 En este proyecto la entrada es **impredecible**: se baraja en cada partida, así
 que por azar puede llegar casi ordenada. MergeSort no tiene caso degenerado. El
-costo es el vector auxiliar de la etapa `Merge`, que agrega `Θ(n)` de espacio
-extra; con `n = 23` es irrelevante frente a la garantía de complejidad temporal.
+precio es el vector auxiliar del `Merge`, que agrega `Θ(n)` de memoria extra; con
+`n = 23` es irrelevante frente a la garantía de complejidad temporal.
 
-### Por qué no otras técnicas
+### Por qué no se usaron otras técnicas
 
-- **Programación dinámica** (por ejemplo el Fibonacci con memoización que se vio
-  en clase) no aplica: no existen subproblemas superpuestos que convenga
-  guardar. Cada pregunta parte el conjunto de candidatos en dos grupos disjuntos
-  que no se vuelven a visitar.
-- **Búsqueda lineal** era lo que hacía el método `adivinar` de la primera
-  versión: `O(n)`. Se reemplazó por búsqueda binaria `Θ(log n)`, que es posible
-  precisamente porque la Etapa 2 dejó la lista ordenada.
+**Ordenamiento por burbujeo o por inserción.** Los dos ordenan correctamente,
+pero comparan de a pares recorriendo el vector una y otra vez, lo que da `Θ(n²)`.
+No dividen el problema: cada paso vuelve a mirar el total. Se descartaron porque
+MergeSort resuelve lo mismo en `Θ(n log n)` y porque la consigna pide aplicar
+Divide y Conquista, que es precisamente lo que estos métodos no hacen.
+
+**Búsqueda lineal.** Recorrer los 23 personajes hasta encontrar un ID cuesta
+`O(n)`. Se usa búsqueda binaria `Θ(log n)` en su lugar, y es posible únicamente
+porque la Etapa 2 dejó la lista ordenada. El ordenamiento no es decorativo: es
+lo que habilita la búsqueda eficiente.
+
+**Programación dinámica.** Es la técnica indicada cuando un problema se rompe en
+subproblemas que **se repiten**, y conviene guardar cada resultado para no
+recalcularlo. El caso típico es Fibonacci: la versión recursiva ingenua vuelve a
+calcular `fib(3)` decenas de veces, y memorizarlo lo baja de exponencial a
+lineal. Acá no aplica: cada pregunta parte el conjunto de candidatos en dos
+grupos **disjuntos** que no se vuelven a visitar. No hay ningún subproblema
+repetido que valga la pena guardar.
+
+**Fuerza bruta.** Se podría evaluar todas las secuencias posibles de preguntas
+para encontrar la que resuelve en menos turnos garantizados. Con 12 preguntas
+las secuencias posibles son `12!`, más de 479 millones, y habría que evaluar cada
+una contra los 23 secretos posibles. Greedy encuentra una solución muy buena
+mirando sólo el turno actual, y se explica en la sección siguiente.
 
 ## 5. Greedy
 
-Se implementa en `clases/Comodin.java`. El viejo comodín que indicaba un rango
-se convirtió en una ayuda más fuerte: ahora decide cuál pregunta conviene hacer.
+Se implementa en `clases/Comodin.java`. Un algoritmo Greedy toma en cada paso la
+mejor decisión disponible **en ese momento**, sin simular el resto de la partida
+y sin volver atrás sobre lo ya decidido.
 
-Elementos del algoritmo:
+La máquina toma dos decisiones de este tipo por turno: primero evalúa si conviene
+arriesgar, y si no, elige qué preguntar.
 
-- **Candidatos:** las preguntas hardcodeadas todavía no utilizadas.
-- **Selección:** elegir la pregunta que minimice el peor grupo restante.
-- **Factibilidad:** la pregunta no fue usada y separa candidatos en un grupo
-  `SI` y otro `NO`, ambos no vacíos.
-- **Solución:** cuando queda un candidato, la máquina lo propone directamente.
-- **Objetivo:** reducir al máximo la lista en la decisión actual.
+### Los cinco elementos del esquema Greedy
 
-Para cada pregunta:
+| Elemento | En este juego |
+|---|---|
+| Conjunto de candidatos | Los personajes que todavía no fueron descartados |
+| Función de selección | La pregunta que minimiza el peor caso |
+| Función de factibilidad | Que la pregunta no se haya usado y que divida el conjunto |
+| Función de solución | Queda un único candidato posible |
+| Función objetivo | Usar la menor cantidad de turnos |
+
+### La función de selección
+
+Para cada pregunta disponible se cuenta cuántos candidatos responderían `SÍ` y
+cuántos `NO`. La máquina elige la pregunta cuyo **peor caso** sea más chico:
 
 ```text
-peorCaso = max(cantidadSi, cantidadNo)
-desequilibrio = |cantidadSi - cantidadNo|
+puntaje(pregunta) = max(cantidadSi, cantidadNo)
 ```
 
-La pregunta con menor `peorCaso` es la mejor decisión local. Si varias empatan,
-se elige una al azar. Así se mantiene el requisito de aleatoriedad sin abandonar
-la optimización greedy.
+Se descartan las preguntas que no dividen, es decir aquellas donde todos los
+candidatos responden lo mismo, porque no aportan información.
 
-Evaluar `q` preguntas sobre `n` candidatos cuesta `Θ(q·n)`. Como el proyecto
-tiene siempre 12 preguntas, `q` es constante y un turno cuesta `Θ(n)`.
+Minimizar el peor caso equivale a buscar la partición más balanceada posible. Es
+el mismo principio que sostiene la búsqueda binaria: si cada pregunta parte el
+conjunto casi por la mitad, la cantidad de turnos crece como `log₂` de la
+cantidad de personajes. Con 23 candidatos, `log₂(23) ≈ 4,52`.
 
-El criterio es óptimo para el paso actual, pero no se afirma que produzca el
-árbol de preguntas globalmente mínimo para cualquier catálogo imaginable. Esa
-es la limitación habitual de una heurística greedy.
+### El desempate no es al azar
+
+Varias preguntas pueden empatar en el mismo peor caso. En ese caso **no se
+sortea**: se desempata con dos reglas fijas, aplicadas en orden.
+
+1. Se prefiere un filtro de los que lista la consigna (género, calvicie, lentes,
+   colores de pelo) sobre uno de los atributos declarados adicionalmente. Ante
+   igual puntaje las dos preguntas sirven exactamente lo mismo, así que se
+   privilegia la consigna.
+2. Si el empate persiste, se toma la primera en el orden en que están declaradas.
+
+Gracias a esto cada partida es reproducible y toda elección se puede auditar
+leyendo la consola.
+
+### Costo por turno
+
+Evaluar una pregunta requiere recorrer los candidatos una vez. Con `q` preguntas
+y `n` candidatos, evaluarlas todas cuesta `Θ(q·n)`.
+
+En este proyecto `q` vale siempre 12, porque las preguntas están fijas y no
+dependen del tamaño del tablero. Una constante no afecta el orden de
+complejidad, así que `Θ(12·n)` se escribe **`Θ(n)`**: el costo de un turno crece
+de forma proporcional a la cantidad de candidatos que quedan, y como esa
+cantidad baja turno a turno, los turnos se van abaratando.
 
 ### Segunda decisión Greedy: preguntar o jugársela
 
-El profesor pidió que la máquina no espere a tener certeza absoluta, sino que
-cada ciertas preguntas *"se la juegue y tire un nombre"*. Esa también es una
-decisión voraz, y se implementa en `clases/Personalidad.java`.
-
-En cada turno la máquina compara dos opciones, sabiendo que **el turno se gasta
-en una o en la otra**:
+La máquina no espera a tener certeza absoluta para tirar un nombre. Antes de
+elegir pregunta evalúa si le conviene arriesgar, y esa comparación también es
+voraz, porque mira sólo el turno actual:
 
 - **Preguntar** no gana la partida, pero garantiza reducir el peor caso.
 - **Arriesgar** gana con probabilidad `1/k`, donde `k` es la cantidad de
   candidatos que quedan. Si falla, ese candidato se descarta, así que la apuesta
   perdida igual aporta información.
 
-La máquina se la juega cuando se cumplen las dos condiciones de su personalidad:
-que hayan pasado suficientes preguntas desde la última apuesta y que `1/k`
-alcance su umbral de riesgo.
+Cada máquina tiene un **umbral de riesgo**, es decir, la probabilidad mínima de
+acierto que le exige a una apuesta para animarse a hacerla. La máquina arriesga
+cuando se cumplen las dos condiciones de su personalidad: que hayan pasado
+suficientes preguntas desde la última apuesta y que `1/k` alcance ese umbral.
 
 | Personalidad | Preguntas entre apuestas | Umbral | Arriesga con |
 |---|---:|---:|---:|
@@ -200,83 +275,98 @@ alcance su umbral de riesgo.
 | `NORMAL` | 3 | 33 % | 3 candidatos o menos |
 | `AUDAZ` | 2 | 20 % | 5 candidatos o menos |
 
-Es voraz en el mismo sentido que la elección de pregunta: mira sólo el turno
-actual, no simula el resto de la partida y no revisa decisiones anteriores.
+Un ejemplo: con 8 candidatos la probabilidad de acertar es `1/8 = 12,5 %`, así
+que ninguna de las tres arriesga y todas preguntan. Con 4 candidatos es `25 %`, y
+sólo la `AUDAZ` se la juega.
 
-**Resultado medido** sobre los 23 secretos posibles y 40 semillas distintas
-(920 partidas por personalidad):
+Esto es distinto del caso en que **queda un único candidato**. Ahí no hay
+apuesta ni intervienen las personalidades: la máquina ya sabe la respuesta y
+simplemente la dice.
 
-| Personalidad | Turnos promedio | Peor caso | Partidas sin resolver |
-|---|---:|---:|---:|
-| `CAUTELOSA` | 5,30 | 6 | 0 |
-| `NORMAL` | **5,23** | 6 | 0 |
-| `AUDAZ` | 5,37 | 7 | 0 |
+### Cuánto cuesta cada umbral
 
-Las tres resuelven siempre, y las tres mejoran el promedio de 5,52 turnos que
-daba la versión que sólo suponía con un único candidato. Existe un **óptimo
-intermedio**: arriesgar de menos desperdicia turnos preguntando cuando ya casi
-no queda información por ganar, y arriesgar de más los desperdicia en apuestas
-con poca probabilidad de acertar.
+Se midieron los 23 secretos posibles con cada personalidad:
+
+| Personalidad | Turnos promedio |
+|---|---:|
+| `CAUTELOSA` | 5,30 |
+| `NORMAL` | **5,26** |
+| `AUDAZ` | 5,35 |
+
+Las tres resuelven siempre y ninguna necesita más de 6 turnos. Las tres son
+mejores que no arriesgar nunca y esperar a tener un único candidato, que da 5,61
+turnos de promedio.
+
+El dato interesante es que existe un **punto intermedio óptimo**. Arriesgar de
+menos desperdicia turnos preguntando cuando ya casi no queda información por
+ganar. Arriesgar de más los desperdicia en apuestas con poca probabilidad de
+acertar. La `NORMAL` está en el medio y es la que menos turnos necesita.
 
 ### Las dos máquinas virtuales
 
-La consigna pide modelar dos máquinas. Las dos aplican **el mismo criterio
-Greedy** para elegir la pregunta, minimizar el peor caso, y se diferencian en el
-**umbral de riesgo** con el que deciden dejar de preguntar y jugársela.
+Las dos máquinas aplican **el mismo criterio Greedy** para elegir la pregunta,
+minimizar el peor caso, y se diferencian en el umbral de riesgo:
 
-| Máquina | Personalidad | Arriesga cuando quedan | Turnos promedio |
-|---|---|---|---:|
-| A | `CAUTELOSA` | 2 candidatos o menos | 5,30 |
-| B | `AUDAZ` | 5 candidatos o menos | 5,37 |
+| Máquina | Personalidad | Arriesga cuando quedan |
+|---|---|---|
+| A | `CAUTELOSA` | 2 candidatos o menos |
+| B | `AUDAZ` | 5 candidatos o menos |
 
-El profesor pidió expresamente que la decisión de arriesgar responda a un
-criterio numérico y no al azar, y describió el tipo de criterio esperado:
-*"cuando yo reduzco las posibilidades en un 60% sí o sí me la juego porque ya
-reduje más de la mitad"*. El umbral de riesgo es exactamente eso, expresado como
-probabilidad de acierto `1/k`.
+Se eligieron los dos extremos del rango a propósito, para que el contraste se
+note en la traza. En Humano vs Máquina el jugador elige contra cuál de las tres
+personalidades quiere jugar: no se sortea, así queda explícito a qué se enfrenta.
 
-En Humano vs Máquina el jugador **elige** contra cuál de las tres personalidades
-jugar. No se sortea, así queda explícito contra qué umbral se enfrenta.
+### Alcance del criterio
 
-### Ninguna decisión de la máquina es al azar
+Greedy elige lo mejor para el turno actual, no la mejor secuencia completa de
+preguntas. Puede existir un orden distinto que resuelva algún secreto en menos
+turnos, pero encontrarlo requeriría explorar todas las secuencias posibles. El
+resultado medido, entre 5,26 y 5,35 turnos contra un mínimo teórico de 4,52,
+muestra que la decisión local queda muy cerca del óptimo a un costo mucho menor.
 
-`JugadorMaquina` y `Comodin` **no tienen ninguna fuente de azar**: no reciben ni
-usan `Random`. Las tres decisiones que toma una máquina se derivan de un
-criterio explícito que se imprime en consola:
+## 6. Ninguna decisión de la máquina es al azar
+
+`JugadorMaquina` y `Comodin` **no reciben ni usan `Random`**. Las tres decisiones
+que toma una máquina se derivan de un criterio explícito, y ese criterio se
+imprime en la consola:
 
 | Decisión | Criterio |
 |---|---|
-| Qué pregunta hacer | El menor peor caso; ante empate se prefiere un filtro de la consigna y, si persiste, el primero en el orden declarado |
-| Cuándo arriesgar | `1/k ≥ umbral` de la personalidad, con las preguntas mínimas cumplidas |
-| A quién apostar | El candidato de menor ID, o sea el primero de la lista que dejó ordenada el MergeSort |
+| Qué pregunta hacer | El menor peor caso; ante empate, primero un filtro de la consigna y después el orden declarado |
+| Cuándo arriesgar | Que `1/k` alcance el umbral de la personalidad y que hayan pasado las preguntas mínimas |
+| A quién apostar | El candidato de menor ID, es decir el primero de la lista que dejó ordenada el MergeSort |
 
-Sobre la última: al llegar a la apuesta todos los candidatos que sobreviven son
-**equiprobables**, cada uno con probabilidad `1/k`. Ninguna elección domina a
-otra en términos de acierto, así que no existe un criterio que mejore el
-resultado. Lo que sí importa es que la decisión sea determinista y auditable:
-sortear sería indefendible frente a la pregunta "¿qué criterio usaste?".
+Sobre la última hay algo que aclarar. Cuando la máquina decide apostar, todos los
+candidatos que sobreviven tienen la misma probabilidad de ser el secreto, `1/k`.
+Ninguna elección acierta más seguido que otra, así que **no existe un criterio
+que mejore el resultado**. Lo que sí se puede elegir es que la decisión sea
+determinista y auditable, y por eso se toma el de menor ID: sortear daría el
+mismo resultado estadístico pero no se podría justificar frente a la pregunta
+"¿qué criterio usaste?".
 
-Como consecuencia, **dos partidas contra el mismo secreto producen exactamente
-la misma traza, jugada por jugada**. Hay una prueba automática que lo verifica.
+La consecuencia es que **dos partidas contra el mismo secreto producen
+exactamente la misma traza, jugada por jugada**. Hay una prueba automática que lo
+verifica.
 
 ### Dónde sí se usa azar, y por qué
 
 El único `Random` del proyecto está en `Funcionalidad`, y se usa para dos cosas
-que **no son decisiones de la máquina** sino condiciones iniciales del juego:
+que no son decisiones de la máquina sino **condiciones iniciales de la partida**:
 
-- barajar los 23 personajes en la Etapa 0, que modela volcar la caja del juego
-  de mesa;
-- elegir los secretos de cada partida.
+- barajar los 23 personajes en la Etapa 0 (por ejemplo, es lo que ocurre al
+  volcar la caja de un juego de mesa y encontrar las piezas tiradas);
+- elegir los secretos de cada partida, es decir qué personaje le toca a cada
+  jugador.
 
 La distinción es la que importa: el azar puede **modelar el mundo**, pero no
-puede **reemplazar un criterio**. Si el orden inicial fuera fijo, el MergeSort
-no tendría nada que ordenar y la Etapa 2 sería decorativa.
+puede **reemplazar un criterio**. Si el orden inicial fuera fijo, el MergeSort no
+tendría nada que ordenar y la Etapa 2 sería decorativa.
 
-## 6. Preguntas: por qué son doce y no seis
+## 7. Preguntas: por qué son doce y no seis
 
-`Funcionalidad.crearPreguntas()` crea un array fijo de doce preguntas y
-`Pregunta.evaluar` centraliza cómo se responde cada una. Seis son las que lista
-la consigna y seis son atributos adicionales declarados por el grupo:
+`Funcionalidad.crearPreguntas()` crea un array fijo de doce preguntas, y
+`Pregunta.evaluar` centraliza cómo se responde cada una. Seis son los filtros que
+lista la consigna y seis son atributos adicionales declarados por el grupo:
 
 | Filtros de la consigna | Atributos declarados adicionales |
 |---|---|
@@ -290,192 +380,221 @@ son imposibles, y se puede demostrar.
 
 Los seis filtros no son seis atributos independientes. La calvicie y los tres
 colores de pelo son **cuatro estados mutuamente excluyentes de un mismo
-atributo**: un personaje calvo no tiene color de pelo, y un personaje con pelo
-tiene exactamente uno de los tres colores. Quedan entonces tres dimensiones
-reales:
+atributo**: un personaje calvo no tiene color de pelo, y uno con pelo tiene
+exactamente uno de los tres colores. Quedan entonces tres dimensiones reales:
 
 ```text
 género (2) × lentes (2) × estado del pelo (3 colores + calvo = 4) = 16
 ```
 
 Dieciséis combinaciones posibles para veintitrés personajes. Por el **principio
-del palomar**, si hay más objetos que casilleros al menos un casillero recibe
-más de un objeto: sin importar cómo se repartan los atributos, quedan como
-mínimo siete personajes indistinguibles de otro.
+del palomar**, si hay más objetos que casilleros al menos un casillero recibe más
+de un objeto: sin importar cómo se repartan los atributos, quedan como mínimo
+siete personajes indistinguibles de otro.
 
 Se verificó sobre el elenco real usando únicamente los seis filtros de la
-consigna: los 23 personajes colapsan en **6 clases de equivalencia**, con un
-grupo de once personajes con exactamente la misma firma. El juego sería
-imposible de ganar por deducción.
+consigna. Los 23 personajes colapsan en **8 clases de equivalencia**, y en siete
+de ellas hay más de un personaje:
 
-Ampliar el conjunto de atributos no es una licencia que se tomó el grupo: es la
-única forma de cumplir la primera regla de la consigna. La expresión
-*"características distinguibles **a declarar**"* es justamente lo que habilita a
-declarar atributos además de los listados.
+| Personajes con la misma firma | Cuántos |
+|---|---:|
+| Capitán América, Thor, Flash, Aquaman | 4 |
+| Pantera Negra, Avispa, Gamora, Mujer Maravilla | 4 |
+| Spider-Man, Hulk, Superman | 3 |
+| Iron Man, Doctor Strange, Batman | 3 |
+| Jean Grey, Viuda Negra, Chica Halcón | 3 |
+| Deadpool, Profesor X, Cyborg | 3 |
+| Supergirl, Canario Negro | 2 |
+
+Con esos seis filtros el juego sería imposible de ganar por deducción: ninguna
+combinación de preguntas separa a Thor de Aquaman.
+
+Ampliar el conjunto de atributos no es una licencia que se tomó el grupo, es la
+única forma de cumplir la primera regla. La expresión *"características
+distinguibles **a declarar**"* es justamente lo que habilita a declarar atributos
+además de los listados.
 
 ### Cuántos atributos adicionales hacen falta
 
 Se recorrieron todas las combinaciones posibles de los seis atributos extra para
-buscar el conjunto mínimo que distingue a los 23 personajes:
+encontrar el conjunto mínimo que distingue a los 23 personajes:
 
 | Atributos extra | ¿Alcanza? |
 |---|---|
 | 1 | No, ninguna de las 6 combinaciones |
 | 2 | No, ninguna de las 15 combinaciones |
-| 3 | No, ninguna de las 20 combinaciones |
-| 4 | Sí, exactamente una: máscara + arma + vuela + universo |
+| 3 | Sí, 3 de las 20 combinaciones |
 
-El mínimo teórico es cuatro. El proyecto usa seis, apenas dos por encima del
-mínimo: los dos restantes (poderes y capa) se conservan porque aportan cortes
-distintos al Greedy sin agrandar el problema.
+Las tres que funcionan son máscara + arma + vuela, máscara + arma + universo y
+máscara + vuela + universo. El mínimo es entonces **tres**.
+
+El proyecto usa los seis. Los tres restantes se conservan porque aportan cortes
+distintos que le dan más opciones al Greedy, sin agrandar el problema: el costo
+por turno sigue siendo `Θ(n)`.
 
 ### Balance de los filtros
 
 El Greedy elige la pregunta que minimiza el peor grupo restante, así que un
-filtro donde casi todos responden lo mismo es un filtro que nunca se va a
+filtro donde casi todos responden lo mismo es un filtro que casi nunca se va a
 elegir. El elenco se diseñó para que los filtros de la consigna sean útiles:
 
 | Filtro | Sí | No | Peor caso |
 |---|---:|---:|---:|
 | género masculino *(consigna)* | 13 | 10 | 13 |
-| calvicie *(consigna)* | 3 | 20 | 20 |
-| lentes *(consigna)* | 4 | 19 | 19 |
-| pelo colorado *(consigna)* | 4 | 19 | 19 |
 | pelo negro *(consigna)* | 10 | 13 | 13 |
 | pelo amarillo *(consigna)* | 6 | 17 | 17 |
-| poderes | 20 | 3 | 20 |
-| capa | 6 | 17 | 17 |
+| lentes *(consigna)* | 4 | 19 | 19 |
+| pelo colorado *(consigna)* | 4 | 19 | 19 |
+| calvicie *(consigna)* | 3 | 20 | 20 |
 | máscara | 11 | 12 | 12 |
 | arma | 13 | 10 | 13 |
 | vuela | 10 | 13 | 13 |
 | universo Marvel | 13 | 10 | 13 |
+| capa | 6 | 17 | 17 |
+| poderes | 20 | 3 | 20 |
 
 ### Por qué la calvicie sigue estando aunque esté desbalanceada
 
 La calvicie queda en 3 contra 20 y se evaluó sacarla del juego. Se decidió
 mantenerla por dos razones.
 
-**Primera: sin ella el juego se rompe.** Se verificó que al quitar la calvicie,
-Capitán América y Deadpool quedan con firma idéntica en los once filtros
-restantes, y ninguna combinación de los atributos disponibles los separa. Esto
-muestra que un filtro poco frecuente puede ser irremplazable: no aporta en el
-caso promedio, pero es el único que separa un par concreto.
+**Primera: sin ella el juego se rompe.** Al quitar la calvicie, Capitán América y
+Deadpool quedan con firma idéntica en los once filtros restantes, y ninguna
+combinación de los atributos disponibles los separa. Un filtro poco frecuente
+puede ser irremplazable: no aporta en el caso promedio, pero es el único que
+separa un par concreto.
 
-**Segunda: está en la lista de filtros de la consigna.** El proyecto ya agrega
+**Segunda: está entre los filtros que lista la consigna.** El proyecto ya agrega
 seis atributos que la consigna no menciona, y esa decisión está justificada con
 la demostración de arriba. Quitar además uno de los que sí menciona sería
 incoherente.
 
-El desbalance no es un defecto de diseño. En el Adivina Quién original la
-calvicie también es un rasgo minoritario, alrededor de 5 de 24 personajes. Es un
-filtro de **baja frecuencia pero alta información**: casi siempre responde NO y
-descarta poco, pero cuando responde SÍ deja apenas tres candidatos. El Greedy lo
-detecta solo y lo pospone, que es exactamente el comportamiento esperado del
-criterio de minimizar el peor caso.
+El desbalance tampoco es un defecto de diseño: en el juego de mesa original la
+calvicie también es un rasgo minoritario. Es un filtro de **baja frecuencia pero
+alta información**: casi siempre responde `NO` y descarta poco, pero cuando
+responde `SÍ` deja apenas tres candidatos. El Greedy lo detecta solo y lo pospone
+(es decir, lo deja para el final en lugar de elegirlo primero), que es
+exactamente el comportamiento esperado del criterio de minimizar el peor caso.
 
-### El criterio de los lentes
+## 8. Separación entre la consola y la lógica
 
-Los lentes se evalúan sobre la **identidad civil** del personaje, no sobre el
-traje: Clark Kent usa lentes aunque Superman no. Para que el jugador humano no
-tenga que adivinar el criterio, está enunciado en el texto mismo de la pregunta:
-*"¿Usa lentes en su identidad civil?"*. Un criterio de evaluación que el jugador
-no puede ver es un criterio que vuelve el juego injusto.
-
-## 6.b Separación entre la consola y la lógica
-
-El profesor pidió que el razonamiento de la máquina se vea en consola, pero
-también que **si se apaga esa salida el juego siga funcionando igual**. Eso se
-resuelve por diseño y no con condicionales repartidos por el código.
+El razonamiento de la máquina se ve en la consola, pero **si se apaga esa salida
+el juego funciona igual**. Eso se resuelve por diseño y no con condicionales
+repartidos por el código.
 
 Ningún método del paquete `clases` escribe en `System.out`. Todos reciben un
-`PrintStream salida` y un `boolean mostrarProceso`. La lógica del juego no
-depende en ningún punto de que se haya impreso algo: la salida es un observador
-del proceso, no parte de él.
+`PrintStream salida` y un `boolean mostrarProceso`. La lógica no depende en
+ningún punto de que se haya impreso algo: la salida es un observador del proceso
+y no parte de él, es decir, imprimir o no imprimir no cambia ninguna decisión ni
+ningún resultado.
 
-La opción 5 del menú alterna el razonamiento en consola en tiempo real, y sirve
-para demostrarlo: con la traza activada o silenciada, la partida avanza y
-termina exactamente igual. Las pruebas automáticas se apoyan en lo mismo, ya que
-corren cientos de partidas contra un `PrintStream` vacío.
+La opción 5 del menú alterna el razonamiento en tiempo real y sirve para
+demostrarlo: con la traza activada o silenciada, la partida avanza y termina
+exactamente igual. Las pruebas automáticas se apoyan en lo mismo, ya que corren
+cientos de partidas contra un `PrintStream` vacío.
 
 Ésta es la separación de responsabilidades que va a permitir agregar la interfaz
-Swing más adelante sin tocar los algoritmos: la vista de consola y la vista
+gráfica más adelante sin tocar los algoritmos: la vista de consola y la vista
 gráfica van a ser dos observadores del mismo proceso.
 
-## 7. Protección del secreto humano
+## 9. Protección del secreto
 
-El personaje del humano se elige mentalmente y nunca se guarda en una variable.
-`JugadorMaquina` sólo recibe la interfaz `Respondedor`, que permite preguntar o
-confirmar una suposición. En Humano vs Máquina, el `Respondedor` solicita por
-consola cada `sí/no`.
+El personaje del humano se elige mentalmente y **nunca se guarda en una
+variable**. `JugadorMaquina` sólo recibe la interfaz `Respondedor`, que permite
+preguntar o confirmar una suposición, pero no leer el secreto. En Humano vs
+Máquina el `Respondedor` solicita por consola cada `sí/no`.
 
-En Máquina vs Máquina, `SecretoMaquina` encapsula el personaje. El rival nunca
-recibe una referencia directa al secreto. La coordinación lo revela únicamente
-al terminar la partida.
+En Máquina vs Máquina, `SecretoMaquina` encapsula el personaje (es decir, lo
+guarda en un campo privado y sólo expone los métodos de `Respondedor`). El rival
+nunca recibe una referencia directa al secreto, y la coordinación lo revela
+únicamente al terminar la partida.
 
-## 8. Modos de juego
+## 10. Modos de juego
 
 ### Humano vs Máquina
 
-El humano y la máquina alternan turnos. El humano puede elegir una pregunta del
-array o intentar adivinar por ID. La máquina usa `Comodin` para seleccionar su
-pregunta greedy y supone cuando queda un único candidato.
+El jugador elige primero contra cuál de las tres personalidades quiere jugar, y
+después piensa su personaje sin escribirlo. La máquina elige el suyo al azar
+entre los 23.
 
-### Ver la inicialización
+Los dos alternan turnos, y cada turno se gasta en **una sola** acción:
 
-La opción 4 del menú muestra la traza de las tres etapas guardada durante
-`prepararJuego()`. No vuelve a barajar: exhibe el desorden real con el que
-arrancó esta ejecución y cómo lo resolvió la máquina.
+- El humano puede elegir una pregunta del listado, y el programa filtra
+  automáticamente sus candidatos con la respuesta; o puede arriesgar un ID.
+- La máquina evalúa primero si le conviene arriesgar según su umbral. Si no,
+  elige la pregunta con `Comodin` y la muestra por consola para que el humano
+  responda `s` o `n`.
+
+Si queda un único candidato posible, la máquina lo dice directamente: ahí no hay
+apuesta, ya tiene la respuesta.
 
 ### Máquina vs Máquina
 
-Se eligen dos secretos distintos. En cada turno se muestran:
+Se eligen dos secretos distintos y las dos máquinas juegan solas. En cada turno
+se muestra:
 
-- todos los candidatos;
-- evaluación `SI/NO` de cada pregunta;
-- peor caso y desequilibrio;
-- desempate aleatorio;
-- pregunta elegida y respuesta;
-- personajes descartados y restantes;
-- suposición final.
+- los candidatos que le quedan a la máquina que juega;
+- la decisión de riesgo, con la probabilidad de acertar contra su umbral;
+- la evaluación Greedy de las doce preguntas, con `sí`, `no` y peor caso, y una
+  marca en las que son filtros de la consigna;
+- la pregunta elegida, con el peor caso que la ganó y el motivo del desempate si
+  lo hubo;
+- la respuesta, los personajes descartados y los que quedan;
+- la apuesta, cuando la hay, con la cantidad de candidatos y la probabilidad.
 
-## 9. Clases
+Los secretos se revelan al terminar.
 
-- `Main`: punto de entrada.
-- `Funcionalidad`: menú, catálogo, inicialización en tres etapas y coordinación
-  de partidas.
-- `Personaje`: modelo con los atributos pedidos.
-- `Pregunta`: pregunta hardcodeada y evaluación de un personaje.
-- `Ordenador`: MergeSort por ID (Divide y Conquista).
-- `Personalidad`: umbral de riesgo para decidir cuándo la máquina se la juega.
-- `Buscador`: inserción por búsqueda binaria y búsqueda por ID (Divide y
-  Conquista).
-- `Comodin`: selección Greedy.
-- `JugadorMaquina`: candidatos y turnos de una máquina.
-- `Respondedor`: acceso limitado al secreto.
-- `SecretoMaquina`: secreto encapsulado.
+### Ver la inicialización
 
-## 10. Pruebas
+La opción 4 muestra la traza de las tres etapas guardada durante
+`prepararJuego()`. No vuelve a barajar: exhibe el desorden real con el que
+arrancó esta ejecución y cómo lo resolvió la máquina.
+
+### Silenciar el razonamiento
+
+La opción 5 activa o silencia la traza de la máquina, y el estado actual se ve en
+el propio menú.
+
+## 11. Clases
+
+| Clase | Responsabilidad |
+|---|---|
+| `Main` | Punto de entrada |
+| `Funcionalidad` | Menú, catálogo, inicialización en tres etapas y coordinación de partidas |
+| `Personaje` | Modelo con los atributos del tablero |
+| `ColorPelo` | Colores posibles de pelo |
+| `Pregunta` | Texto de la pregunta y evaluación sobre un personaje |
+| `Ordenador` | MergeSort por ID (Divide y Conquista) |
+| `Buscador` | Inserción por búsqueda binaria y búsqueda por ID (Divide y Conquista) |
+| `Comodin` | Selección de la pregunta (Greedy) |
+| `Personalidad` | Umbral de riesgo para decidir cuándo arriesgar (Greedy) |
+| `JugadorMaquina` | Candidatos y turnos de una máquina |
+| `Respondedor` | Interfaz que limita el acceso al secreto |
+| `SecretoMaquina` | Secreto encapsulado de una máquina |
+
+## 12. Pruebas
 
 `test/Pruebas.java` comprueba:
 
-1. existencia de 23 personajes, lista final autoincremental por ID y búsqueda
-   Divide y Conquista de cada ID;
+1. que existan 23 personajes, que la lista final sea autoincremental por ID y que
+   la búsqueda Divide y Conquista encuentre cada ID;
 2. que MergeSort deje la lista ordenada de 1 a 23 partiendo de **200 barajados
-   distintos**, verificando que el ordenamiento no dependa del desorden inicial;
+   distintos**, o sea que el ordenamiento no dependa del desorden inicial;
 3. que la traza de inicialización contenga las tres etapas;
-4. firmas de características diferentes;
-5. mejor decisión greedy local;
-6. resolución de los 23 secretos posibles;
-7. que las tres personalidades resuelvan los 23 secretos sin que arriesgar
-   elimine nunca al personaje correcto;
-8. que dos partidas contra el mismo secreto produzcan trazas idénticas, o sea
+4. que los 23 personajes tengan firmas de características diferentes;
+5. que la decisión Greedy de un turno sea efectivamente la de menor peor caso;
+6. que la máquina resuelva los 23 secretos posibles;
+7. que las tres personalidades resuelvan los 23 secretos sin que una apuesta
+   fallida elimine nunca al personaje correcto;
+8. que dos partidas contra el mismo secreto produzcan trazas idénticas, es decir
    que la máquina no tenga ninguna decisión al azar;
-9. presencia del proceso completo en la traza de partida.
+9. que la traza de una partida contenga el proceso completo.
 
 Las pruebas no necesitan Maven, Gradle ni librerías externas. Se ejecutan con
-`.\probar.ps1` y deben mostrar `OK - 9 pruebas superadas.`
+`.\probar.ps1` en Windows o `./probar.sh` en Linux y macOS, y deben mostrar
+`OK - 9 pruebas superadas.`
 
-## 11. Estructura del proyecto
+## 13. Estructura del proyecto
 
 ```text
 AdivinaLaCarta/
@@ -485,7 +604,7 @@ AdivinaLaCarta/
 │   │   ├── Personaje.java
 │   │   ├── ColorPelo.java
 │   │   ├── Pregunta.java
-│   │   ├── Personalidad.java
+│   │   ├── Personalidad.java      umbral de riesgo (Greedy)
 │   │   ├── Ordenador.java         MergeSort (Divide y Conquista)
 │   │   ├── Buscador.java          búsqueda binaria (Divide y Conquista)
 │   │   ├── Comodin.java           selección de pregunta (Greedy)
@@ -498,9 +617,8 @@ AdivinaLaCarta/
     └── Pruebas.java
 ```
 
-Los nombres de clase siguen la convención de Java: `PascalCase` para clases y
-`minúscula` para paquetes. Las clases `Buscador`, `Comodin` y `Funcionalidad`
-venían en minúscula de la guía inicial y se renombraron.
+Los nombres siguen la convención de Java: `PascalCase` para clases y minúscula
+para paquetes.
 
 La carpeta `out/` con los `.class` compilados está excluida por `.gitignore`:
 son artefactos generados, no código fuente.
