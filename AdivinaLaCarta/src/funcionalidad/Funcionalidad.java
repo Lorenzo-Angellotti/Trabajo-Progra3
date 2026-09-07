@@ -88,18 +88,7 @@ public class Funcionalidad {
         personajes = inicializarPersonajes();
     }
 
-    /*
-     * Inicializacion en tres etapas, como pide la consigna:
-     *
-     *   Etapa 0  La caja volcada. Los 23 personajes salen en cualquier orden.
-     *   Etapa 1  La maquina los agrupa por genero. Cada alta usa insercion por
-     *            busqueda binaria: Theta(log n) comparaciones por personaje.
-     *            Este es el estado "ordenados unicamente segun su genero".
-     *   Etapa 2  La maquina ordena por ID con MergeSort y deja la lista
-     *            autoincremental: Theta(n log n).
-     *
-     * La traza queda guardada para poder mostrarla desde el menu.
-     */
+   
     private ArrayList<Personaje> inicializarPersonajes() {
         StringBuilder traza = new StringBuilder();
 
@@ -222,7 +211,6 @@ public class Funcionalidad {
 
         siguienteId++;
 
-        // Solo carga el dato crudo. Ordenar es tarea de la maquina (etapas 1 y 2).
         catalogoEnCarga.add(nuevo);
     }
 
@@ -375,11 +363,7 @@ public class Funcionalidad {
         SecretoMaquina respondedorA = new SecretoMaquina(secretoA);
         SecretoMaquina respondedorB = new SecretoMaquina(secretoB);
 
-        /*
-         * Las dos maquinas aplican el mismo criterio Greedy para elegir la
-         * pregunta y se diferencian en el umbral de riesgo con el que deciden
-         * dejar de preguntar y jugarsela.
-         */
+        
         JugadorMaquina maquinaA = new JugadorMaquina(
                 "Maquina A", personajes, preguntas, Personalidad.CAUTELOSA);
         JugadorMaquina maquinaB = new JugadorMaquina(
@@ -447,10 +431,7 @@ public class Funcionalidad {
         }
     }
 
-    /*
-     * El rival no se sortea: lo elige el jugador. Asi queda explicito contra
-     * que criterio esta jugando y se puede comparar una maquina con la otra.
-     */
+    
     private Personalidad elegirRival() {
         Personalidad[] opciones = Personalidad.values();
         System.out.println("\nContra que maquina queres jugar?");
@@ -540,10 +521,7 @@ public class Funcionalidad {
         System.out.println("Etapa 2: MergeSort, Theta(n log n) en todos los casos.");
     }
 
-    /*
-     * La lista se muestra tal como la dejo el MergeSort de la Etapa 2:
-     * ordenada por ID de forma autoincremental.
-     */
+    
     private void mostrarCatalogoCompleto() {
         System.out.println("\nLos " + personajes.size() + " personajes, "
                 + "ordenados por ID tal como los dejo el MergeSort:");

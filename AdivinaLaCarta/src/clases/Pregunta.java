@@ -22,11 +22,7 @@ public class Pregunta {
         this.texto = texto;
     }
 
-    /*
-     * Distingue los seis filtros que lista la consigna de los seis atributos
-     * que declaro el grupo. Se usa para desempatar la seleccion Greedy sin
-     * recurrir al azar: ante igual puntaje se prefiere el de la consigna.
-     */
+    
     public boolean isDeConsigna() {
         return codigo == GENERO_MASCULINO
                 || codigo == CALVICIE
@@ -58,12 +54,7 @@ public class Pregunta {
                 return personaje.isArma();
             case VUELA:
                 return personaje.isVuela();
-            /*
-             * Los lentes se evaluan sobre la identidad civil del personaje,
-             * no sobre el traje: Clark Kent usa lentes aunque Superman no.
-             * El criterio esta enunciado en el texto de la pregunta para que
-             * el jugador humano no tenga que adivinarlo.
-             */
+            
             case LENTES:
                 return personaje.isLentes();
             case CALVICIE:

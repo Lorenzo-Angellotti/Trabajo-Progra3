@@ -5,29 +5,7 @@ import java.util.ArrayList;
 
 public class Comodin {
 
-    /*
-     * Algoritmo Greedy: en cada turno elige la pregunta que minimiza el
-     * mayor grupo que podria quedar. No reconsidera preguntas anteriores.
-     * Si varias preguntas son igualmente buenas, elige una al azar.
-     */
-    /*
-     * Seleccion Greedy de la proxima pregunta.
-     *
-     * Criterio: minimizar el peor caso, es decir min( max(si, no) ). Se elige
-     * la pregunta que deja el grupo restante mas chico en la peor respuesta
-     * posible. Es la particion balanceada, el mismo principio que aparece en
-     * el codigo de Huffman.
-     *
-     * Ante empate NO se sortea: se desempata con dos reglas fijas, en orden.
-     *
-     *   1) Se prefiere un filtro de los que lista la consigna sobre uno de los
-     *      atributos declarados por el grupo. Ante igualdad de puntaje las dos
-     *      preguntas sirven lo mismo, asi que se privilegia la consigna.
-     *   2) Si el empate persiste, se toma la primera en el orden declarado.
-     *
-     * De esta forma cada partida es reproducible y toda eleccion es auditable
-     * desde la consola: no hay ninguna decision tomada al azar.
-     */
+    
     public Pregunta elegirMejorPregunta(ArrayList<Personaje> candidatos,
                                         Pregunta[] preguntas,
                                         boolean[] preguntasUsadas,

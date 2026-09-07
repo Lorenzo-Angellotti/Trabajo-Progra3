@@ -2,27 +2,10 @@ package clases;
 
 import java.util.ArrayList;
 
-/*
- * Divide y Conquista aplicado al ordenamiento.
- *
- * La maquina recibe los personajes tal como salen de la caja (agrupados
- * unicamente por genero) y debe dejarlos en una lista autoincremental por ID,
- * como pide la consigna.
- *
- * Se eligio MergeSort y no QuickSort porque MergeSort garantiza Theta(n log n)
- * en todos los casos. QuickSort con pivot en u[ini] (la version de la Clase 02)
- * degrada a Theta(n^2) cuando la entrada llega ordenada o casi ordenada, y aca
- * la entrada se baraja en cada partida: puede llegar casi ordenada por azar.
- */
+
 public class Ordenador {
 
-    /*
-     * MergeSort: divide el intervalo en dos mitades, ordena cada una
-     * recursivamente y luego las mezcla.
-     *
-     * Recurrencia: T(n) = 2 T(n/2) + Theta(n)
-     * Con a = 2, b = 2, k = 1 estamos en el caso a = b^k, o sea Theta(n log n).
-     */
+    
     public void ordenarPorId(ArrayList<Personaje> personajes) {
         if (personajes.size() > 1) {
             mergeSort(personajes, 0, personajes.size() - 1);

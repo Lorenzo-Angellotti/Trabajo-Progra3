@@ -4,11 +4,7 @@ import java.util.ArrayList;
 
 public class Buscador {
 
-    /*
-     * Divide y Conquista: encuentra recursivamente la posicion donde debe
-     * insertarse el personaje. Las mujeres (false) quedan primero y los
-     * hombres (true) despues. Dentro de cada genero se conservan los IDs.
-     */
+    
     public void agregarOrdenadoPorGenero(ArrayList<Personaje> personajes,
                                          Personaje nuevo) {
         int posicion = buscarPosicionPorGenero(
@@ -36,15 +32,7 @@ public class Buscador {
                 personajes, generoMasculino, inicio, medio);
     }
 
-    /*
-     * Busqueda binaria clasica (Clase 02). Se apoya en que Ordenador ya dejo
-     * la lista autoincremental por ID, asi que alcanza con una sola busqueda.
-     *
-     * Recurrencia: T(n) = T(n/2) + Theta(1)
-     * Con a = 1, b = 2, k = 0 estamos en el caso a = b^k, o sea Theta(log n).
-     *
-     * Reemplaza al recorrido lineal O(n) que tenia el metodo adivinar original.
-     */
+    
     public Personaje buscarPorId(ArrayList<Personaje> personajes, int id) {
         return buscarIdBinario(personajes, id, 0, personajes.size() - 1);
     }
