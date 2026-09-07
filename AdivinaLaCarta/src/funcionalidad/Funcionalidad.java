@@ -80,7 +80,6 @@ public class Funcionalidad {
         } while (opcion != 0);
     }
 
-    /* Permite probar el catalogo sin iniciar toda la consola. */
     public void prepararJuego() {
         preguntas = crearPreguntas();
         siguienteId = 1;
@@ -99,14 +98,12 @@ public class Funcionalidad {
 
         ArrayList<Personaje> agrupados = new ArrayList<>();
         for (Personaje personaje : caja) {
-            // Divide y Conquista: insercion por busqueda binaria.
             buscadorPersonajes.agregarOrdenadoPorGenero(agrupados, personaje);
         }
         traza.append("ETAPA 1 - Agrupados por genero (insercion binaria, ")
                 .append("femenino primero):\n")
                 .append("  ").append(mostrarIds(agrupados)).append("\n\n");
 
-        // Divide y Conquista: MergeSort deja la lista autoincremental.
         ordenador.ordenarPorId(agrupados);
         traza.append("ETAPA 2 - Ordenados por ID con MergeSort ")
                 .append("(lista autoincremental):\n")
@@ -143,7 +140,6 @@ public class Funcionalidad {
     private void cargarPersonajes(ArrayList<Personaje> destino) {
         catalogoEnCarga = destino;
 
-        // Marvel: IDs 1 a 13.
         agregarPersonaje("Spider-Man (Peter Parker)", true, true, false,
                 true, false, false, true, false, ColorPelo.NEGRO, true);
         agregarPersonaje("Iron Man (Tony Stark)", true, true, false,
@@ -171,7 +167,6 @@ public class Funcionalidad {
         agregarPersonaje("Gamora", false, true, false,
                 false, true, false, false, false, ColorPelo.NEGRO, true);
 
-        // DC: IDs 14 a 23.
         agregarPersonaje("Superman (Clark Kent)", true, true, true,
                 false, false, true, true, false, ColorPelo.NEGRO, false);
         agregarPersonaje("Batman (Bruce Wayne)", true, false, true,
