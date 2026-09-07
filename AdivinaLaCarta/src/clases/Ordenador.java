@@ -21,10 +21,7 @@ public class Ordenador {
         }
     }
 
-    /*
-     * Merge recorre las dos mitades ya ordenadas una sola vez, por lo que
-     * cuesta Theta(n). Ese es el k = 1 de la recurrencia.
-     */
+    
     private void merge(ArrayList<Personaje> u, int ini, int fin) {
         ArrayList<Personaje> w = new ArrayList<>(fin - ini + 1);
         int mid = (ini + fin) / 2;

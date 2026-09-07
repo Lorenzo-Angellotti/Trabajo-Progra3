@@ -482,10 +482,7 @@ public class Funcionalidad {
                 + secretoB.revelarAlFinal().getNombre());
     }
 
-    /*
-     * La lista se muestra tal como la dejo el MergeSort: ordenada por ID de
-     * forma autoincremental, que es el estado que pide la consigna.
-     */
+   
     private void mostrarCatalogoResumido() {
         System.out.println("\n[LISTA ORDENADA POR ID - "
                 + personajes.size() + " personajes]");
@@ -495,11 +492,7 @@ public class Funcionalidad {
         }
     }
 
-    /*
-     * Separacion de responsabilidades: la consola de razonamiento se puede
-     * apagar y el juego sigue funcionando igual. La logica no depende de que
-     * se imprima nada; la salida es solo un observador del proceso.
-     */
+    
     private void alternarProceso() {
         mostrarProcesoMaquina = !mostrarProcesoMaquina;
         System.out.println("\nRazonamiento de la maquina en consola: "
@@ -554,7 +547,6 @@ public class Funcionalidad {
                     return numero;
                 }
             } catch (NumberFormatException ignored) {
-                // Se muestra el mismo mensaje para ambos tipos de error.
             }
 
             System.out.println("Ingrese un numero entre " + minimo

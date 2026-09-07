@@ -46,7 +46,6 @@ public class Pruebas {
 
         verificar(personajes.size() == 23, "Deben existir 23 personajes");
 
-        // Tras la Etapa 2 (MergeSort) la lista debe quedar autoincremental.
         for (int i = 0; i < personajes.size(); i++) {
             Personaje personaje = personajes.get(i);
 
@@ -65,10 +64,7 @@ public class Pruebas {
         aprobada();
     }
 
-    /*
-     * La caja se baraja distinto en cada partida. MergeSort tiene que dejar
-     * la lista autoincremental sin importar como haya salido el desorden.
-     */
+   
     private void probarOrdenamientoConVariasSemillas() {
         for (long semilla = 0; semilla < 200; semilla++) {
             Funcionalidad juego = new Funcionalidad(
@@ -89,7 +85,6 @@ public class Pruebas {
         aprobada();
     }
 
-    /* La consigna pide poder ver los procesos que hace la maquina. */
     private void probarTrazaDeInicializacion() {
         Funcionalidad juego = new Funcionalidad(new Scanner(""), new Random(7));
         juego.prepararJuego();
@@ -174,10 +169,7 @@ public class Pruebas {
         aprobada();
     }
 
-    /*
-     * Arriesgar no puede romper el juego: con cualquier personalidad la
-     * maquina tiene que seguir resolviendo los 23 secretos posibles.
-     */
+   
     private void probarPersonalidades(Funcionalidad juego) {
         ArrayList<Personaje> personajes = juego.getPersonajes();
         Pregunta[] preguntas = juego.getPreguntas();
@@ -210,10 +202,7 @@ public class Pruebas {
         aprobada();
     }
 
-    /*
-     * La maquina no tiene ninguna fuente de azar: dos partidas contra el mismo
-     * secreto deben producir exactamente la misma traza, jugada por jugada.
-     */
+  
     private void probarDeterminismo(Funcionalidad juego) {
         ArrayList<Personaje> personajes = juego.getPersonajes();
         Pregunta[] preguntas = juego.getPreguntas();
