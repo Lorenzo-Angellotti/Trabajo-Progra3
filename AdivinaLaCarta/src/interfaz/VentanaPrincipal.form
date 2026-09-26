@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="interfaz.VentanaPrincipal">
+  <grid id="27dc6" binding="panelRaiz" layout-manager="BorderLayout" hgap="0" vgap="0">
+    <constraints>
+      <xy x="20" y="20" width="1000" height="650"/>
+    </constraints>
+    <properties>
+      <preferredSize width="1000" height="650"/>
+    </properties>
+    <border type="none"/>
+    <children>
+      <grid id="cardRoot" binding="panelPrincipal" layout-manager="CardLayout" hgap="0" vgap="0">
+        <constraints border-constraint="Center"/>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <grid id="pantallaMenu" layout-manager="GridLayoutManager" row-count="7" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+            <margin top="50" left="260" bottom="50" right="260"/>
+            <constraints>
+              <card name="pantallaMenu"/>
+            </constraints>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <component id="tituloMenu" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <font size="32" style="1"/>
+                  <horizontalAlignment value="0"/>
+                  <labelFor value="scrollRegistro"/>
+                  <text value="Adivina La Carta"/>
+                </properties>
+              </component>
+              <component id="labelSecreto" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Tu personaje:"/>
+                </properties>
+              </component>
+              <component id="comboSecreto" class="javax.swing.JComboBox" binding="comboSecretoHumano">
+                <constraints>
+                  <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+              </component>
+              <component id="labelRival" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Rival:"/>
+                </properties>
+              </component>
+              <component id="comboRival" class="javax.swing.JComboBox" binding="comboRival">
+                <constraints>
+                  <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+              </component>
+              <component id="botonEmpezar" class="javax.swing.JButton" binding="botonEmpezar">
+                <constraints>
+                  <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Empezar partida"/>
+                </properties>
+              </component>
+              <component id="botonVerPersonajes" class="javax.swing.JButton" binding="botonVerPersonajes">
+                <constraints>
+                  <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Ver personajes"/>
+                </properties>
+              </component>
+            </children>
+          </grid>
+          <grid id="pantallaPersonajes" layout-manager="BorderLayout" hgap="12" vgap="12">
+            <constraints>
+              <card name="pantallaPersonajes"/>
+            </constraints>
+            <properties/>
+            <border type="empty"/>
+            <children>
+              <component id="tituloPersonajes" class="javax.swing.JLabel">
+                <constraints border-constraint="North"/>
+                <properties>
+                  <font size="24" style="1"/>
+                  <text value="Personajes disponibles"/>
+                </properties>
+              </component>
+              <scrollpane id="scrollPersonajes">
+                <constraints border-constraint="Center"/>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="listadoPersonajes" class="javax.swing.JTextArea">
+                    <constraints/>
+                    <properties>
+                      <editable value="false"/>
+                      <font name="Monospaced" size="13"/>
+                    </properties>
+                  </component>
+                </children>
+              </scrollpane>
+              <component id="botonVolverMenu" class="javax.swing.JButton" binding="botonVolverMenu">
+                <constraints border-constraint="South"/>
+                <properties>
+                  <text value="Volver al menu"/>
+                </properties>
+              </component>
+            </children>
+          </grid>
+          <grid id="pantallaJuego" layout-manager="BorderLayout" hgap="12" vgap="12">
+            <constraints>
+              <card name="pantallaJuego"/>
+            </constraints>
+            <properties/>
+            <border type="empty"/>
+            <children>
+              <component id="labelEstado" class="javax.swing.JLabel" binding="labelEstado">
+                <constraints border-constraint="North"/>
+                <properties>
+                  <font size="16" style="1"/>
+                  <text value="Sin partida"/>
+                </properties>
+              </component>
+              <scrollpane id="scrollTarjetas">
+                <constraints border-constraint="Center"/>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <grid id="panelTarjetas" binding="panelTarjetas" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
+                    <constraints/>
+                    <properties/>
+                    <border type="none"/>
+                    <children/>
+                  </grid>
+                </children>
+              </scrollpane>
+              <grid id="panelLateral" layout-manager="GridLayoutManager" row-count="10" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints border-constraint="East"/>
+                <properties>
+                  <preferredSize width="330" height="600"/>
+                </properties>
+                <border type="none"/>
+                <children>
+                  <component id="labelSecretoHumano" class="javax.swing.JLabel" binding="labelSecretoHumano">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="Tu personaje: sin elegir"/>
+                    </properties>
+                  </component>
+                  <component id="labelPregunta" class="javax.swing.JLabel">
+                    <constraints>
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="Pregunta"/>
+                    </properties>
+                  </component>
+                  <component id="comboPreguntas" class="javax.swing.JComboBox" binding="comboPreguntas">
+                    <constraints>
+                      <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                  <component id="botonPreguntar" class="javax.swing.JButton" binding="botonPreguntar">
+                    <constraints>
+                      <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="Hacer pregunta"/>
+                    </properties>
+                  </component>
+                  <component id="labelAdivinar" class="javax.swing.JLabel">
+                    <constraints>
+                      <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="Adivinar secreto de la maquina"/>
+                    </properties>
+                  </component>
+                  <component id="comboAdivinar" class="javax.swing.JComboBox" binding="comboAdivinar">
+                    <constraints>
+                      <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                  <component id="botonAdivinar" class="javax.swing.JButton" binding="botonAdivinar">
+                    <constraints>
+                      <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="Adivinar"/>
+                    </properties>
+                  </component>
+                  <component id="botonNuevaPartida" class="javax.swing.JButton" binding="botonNuevaPartida">
+                    <constraints>
+                      <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="Nueva partida"/>
+                    </properties>
+                  </component>
+                  <component id="botonCancelarPartida" class="javax.swing.JButton" binding="botonCancelarPartida">
+                    <constraints>
+                      <grid row="8" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="Cancelar partida"/>
+                    </properties>
+                  </component>
+                  <scrollpane id="scrollRegistro">
+                    <constraints>
+                      <grid row="9" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false">
+                        <preferred-size width="280" height="220"/>
+                      </grid>
+                    </constraints>
+                    <properties/>
+                    <border type="none"/>
+                    <children>
+                      <component id="areaRegistro" class="javax.swing.JTextArea" binding="areaRegistro">
+                        <constraints/>
+                        <properties>
+                          <editable value="false"/>
+                          <lineWrap value="true"/>
+                          <wrapStyleWord value="true"/>
+                        </properties>
+                      </component>
+                    </children>
+                  </scrollpane>
+                </children>
+              </grid>
+            </children>
+          </grid>
+        </children>
+      </grid>
+    </children>
+  </grid>
+</form>
