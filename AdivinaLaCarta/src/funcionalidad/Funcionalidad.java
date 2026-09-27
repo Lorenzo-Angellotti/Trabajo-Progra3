@@ -9,6 +9,7 @@ import clases.Ordenador;
 import clases.Respondedor;
 import clases.SecretoMaquina;
 import clases.Buscador;
+import interfaz.VentanaPrincipal;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,9 +54,10 @@ public class Funcionalidad {
             System.out.println("4. Ver como la maquina inicializo y ordeno");
             System.out.println("5. Mostrar el razonamiento de la maquina: "
                     + (mostrarProcesoMaquina ? "SI" : "NO"));
+            System.out.println("6. Abrir interfaz Swing");
             System.out.println("0. Salir");
 
-            opcion = leerEntero("Elija una opcion: ", 0, 5);
+            opcion = leerEntero("Elija una opcion: ", 0, 6);
 
             switch (opcion) {
                 case 1:
@@ -72,6 +74,9 @@ public class Funcionalidad {
                     break;
                 case 5:
                     alternarProceso();
+                    break;
+                case 6:
+                    abrirInterfazSwing();
                     break;
                 default:
                     System.out.println("Fin del juego.");
@@ -232,13 +237,9 @@ public class Funcionalidad {
         elegido = elegirAleatoriamente();
         elegido.setElegido(true);
 
-        SecretoMaquina secretoDeLaMaquina = new SecretoMaquina(elegido);
         Personalidad personalidad = elegirRival();
-        JugadorMaquina maquina = new JugadorMaquina(
-                "Maquina", personajes, preguntas, personalidad);
-        ArrayList<Personaje> candidatosDelHumano = new ArrayList<>(personajes);
-        boolean[] preguntasUsadasPorHumano = new boolean[preguntas.length];
-        Respondedor secretoDelHumano = crearRespondedorHumano();
+        Partida partida = new Partida(personajes, preguntas, elegido,
+                crearRespondedorHumano(), personalidad, mostrarProcesoMaquina, System.out);
 
         System.out.println("\n=== HUMANO VS MAQUINA ===");
         System.out.println("Rival: maquina " + personalidad.getNombre()
@@ -253,98 +254,38 @@ public class Funcionalidad {
         System.out.println("No debe escribir su ID: la maquina no guardara su secreto.");
         esperarEnter("Cuando lo haya elegido, presione Enter...");
 
-        int ronda = 1;
-
-        while (true) {
-            System.out.println("\n========== RONDA " + ronda + " ==========");
-
-            if (jugarTurnoHumano(candidatosDelHumano,
-                    preguntasUsadasPorHumano, secretoDeLaMaquina)) {
-                System.out.println("Gano el jugador humano.");
-                System.out.println("El personaje era: " + elegido.getNombre());
-                return;
-            }
-
-            System.out.println("\n--- Turno de la maquina ---");
-            boolean ganoMaquina = maquina.jugarTurno(
-                    secretoDelHumano, mostrarProcesoMaquina, System.out);
-
-            if (ganoMaquina) {
-                System.out.println("Gano la maquina.");
-                System.out.println("El secreto de la maquina era: "
-                        + elegido.getNombre());
-                return;
-            }
-
-            if (maquina.isSinCandidatos()) {
-                System.out.println("Las respuestas dadas se contradicen. Se cancela la partida.");
-                return;
-            }
-
-            ronda++;
+        while (partida.isActiva()) {
+            System.out.println("\n========== RONDA " + partida.getRonda() + " ==========");
+            jugarTurnoHumano(partida);
         }
     }
 
-    private boolean jugarTurnoHumano(ArrayList<Personaje> candidatos,
-                                     boolean[] preguntasUsadas,
-                                     Respondedor rival) {
+    private void jugarTurnoHumano(Partida partida) {
         System.out.println("\n--- Su turno ---");
-        System.out.println("Candidatos: " + mostrarLista(candidatos));
+        System.out.println("Candidatos: " + mostrarLista(partida.getCandidatosHumano()));
         System.out.println("1. Hacer una pregunta");
         System.out.println("2. Adivinar directamente");
-
         int opcion = leerEntero("Elija: ", 1, 2);
-
         if (opcion == 2) {
             int id = leerEntero("ID del personaje: ", 1, personajes.size());
-            Personaje supuesto = buscadorPersonajes.buscarPorId(personajes, id);
-
-            if (supuesto == null) {
-                System.out.println("No existe un personaje con ese ID.");
-                return false;
-            }
-
-            boolean acierto = rival.confirmarPersonaje(supuesto);
-
-            if (acierto) {
-                System.out.println("Adivinacion correcta: " + supuesto.getNombre());
-                return true;
-            }
-
-            System.out.println(supuesto.getNombre() + " no es el elegido.");
-            candidatos.remove(supuesto);
-            return false;
+            partida.adivinar(id);
+            return;
         }
-
-        ArrayList<Integer> posicionesDisponibles = new ArrayList<>();
-
-        for (int i = 0; i < preguntas.length; i++) {
-            if (!preguntasUsadas[i]) {
-                posicionesDisponibles.add(i);
-                System.out.println(posicionesDisponibles.size() + ". "
-                        + preguntas[i].getTexto());
-            }
-        }
-
-        if (posicionesDisponibles.isEmpty()) {
+        ArrayList<Pregunta> disponibles = partida.getPreguntasDisponibles();
+        if (disponibles.isEmpty()) {
             System.out.println("Ya uso todas las preguntas. Debera adivinar.");
-            return false;
+            return;
         }
+        for (int i = 0; i < disponibles.size(); i++) {
+            System.out.println((i + 1) + ". " + disponibles.get(i).getTexto());
+        }
+        int numero = leerEntero("Numero de pregunta: ", 1, disponibles.size());
+        partida.preguntar(disponibles.get(numero - 1));
+    }
 
-        int numero = leerEntero(
-                "Numero de pregunta: ", 1, posicionesDisponibles.size());
-        int posicionReal = posicionesDisponibles.get(numero - 1);
-        Pregunta pregunta = preguntas[posicionReal];
-        preguntasUsadas[posicionReal] = true;
-
-        boolean respuesta = rival.responderPregunta(pregunta);
-        filtrarCandidatos(candidatos, pregunta, respuesta);
-
-        System.out.println("Respuesta: " + (respuesta ? "SI" : "NO"));
-        System.out.println("Quedan " + candidatos.size() + " candidatos: "
-                + mostrarLista(candidatos));
-
-        return false;
+    public Partida crearPartida(int idSecretoHumano, Personalidad personalidad) {
+        return Partida.conSecretoHumano(personajes, preguntas, idSecretoHumano,
+                personalidad, random, System.out);
     }
 
     private void jugarMaquinaVsMaquina() {
@@ -416,17 +357,6 @@ public class Funcionalidad {
         };
     }
 
-    private void filtrarCandidatos(ArrayList<Personaje> candidatos,
-                                   Pregunta pregunta,
-                                   boolean respuesta) {
-        for (int i = candidatos.size() - 1; i >= 0; i--) {
-            if (pregunta.evaluar(candidatos.get(i)) != respuesta) {
-                candidatos.remove(i);
-            }
-        }
-    }
-
-    
     private Personalidad elegirRival() {
         Personalidad[] opciones = Personalidad.values();
         System.out.println("\nContra que maquina queres jugar?");
@@ -499,6 +429,13 @@ public class Funcionalidad {
                 + (mostrarProcesoMaquina ? "ACTIVADO" : "SILENCIADO"));
         System.out.println("El juego funciona igual en ambos modos: la logica "
                 + "no depende de la salida por consola.");
+    }
+
+    private void abrirInterfazSwing() {
+        System.out.println("\nAbriendo interfaz Swing.");
+        System.out.println("Podes jugar en la ventana y seguir viendo el proceso en esta consola.");
+        VentanaPrincipal.abrir();
+        esperarEnter("Presione Enter para volver al menu de consola...");
     }
 
     private void mostrarInicializacion() {
