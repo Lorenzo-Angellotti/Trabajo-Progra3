@@ -1,4 +1,4 @@
-Adivina La Carta
+# Adivina la Carta
 
 Juego de deducción por consola sobre un tablero de 23 superhéroes. Cada jugador
 tiene un personaje secreto y gana el primero que descubre el del rival, ya sea
@@ -7,15 +7,15 @@ contra Máquina o Máquina contra Máquina.
 
 Estructura del proyecto:
 
--main inicia el juego;
--funcionalidad contiene el flujo principal;
--personaje es una clase tradicional con atributos, constructor y getters;
--los personajes se guardan en un arraylist`;
--ordenador y buscador implementan Divide y Conquista;
--comodin y personalidad implementan las dos decisiones Greedy;
--adivinar(int id) resuelve una suposición directa por ID.
+- `Main` inicia el juego;
+- `Funcionalidad` contiene el flujo principal;
+- `Personaje` es una clase tradicional con atributos, constructor y getters;
+- los personajes se guardan en un `ArrayList`;
+- `Ordenador` y `Buscador` implementan Divide y Conquista;
+- `Comodin` y `Personalidad` implementan las dos decisiones Greedy;
+- `adivinar(int id)` resuelve una suposición directa por ID.
 
-algoritmos aplicados
+## Algoritmos aplicados
 
 | Dónde | Técnica | Clase | Complejidad |
 |---|---|---|---|
@@ -25,11 +25,11 @@ algoritmos aplicados
 | Elegir la pregunta | Greedy | `Comodin` | `Θ(n)` por turno |
 | Preguntar o jugársela | Greedy | `Personalidad` | `Θ(1)` por turno |
 
-Los personajes arrancan desordenados y es la máquina la que los agrupa por
+Los personajes **arrancan desordenados** y es la máquina la que los agrupa por
 género y los deja en una lista autoincremental. La opción 4 del menú muestra ese
 proceso paso a paso.
 
-como ejecutar?
+## Ejecutar
 
 Desde PowerShell (Windows):
 
@@ -43,11 +43,23 @@ Desde bash (Linux o macOS):
 ./ejecutar.sh
 ```
 
-También se puede abrir la carpeta 'AdivinaLaCarta' como proyecto en IntelliJ
-IDEA y ejecutar main.java.
+También se puede abrir la carpeta `AdivinaLaCarta` como proyecto en IntelliJ
+IDEA y ejecutar `Main.java`.
 
+## Probar
 
-Documentacion
+```powershell
+.\probar.ps1
+```
+
+```bash
+./probar.sh
+```
+
+Las pruebas no necesitan Maven, Gradle ni librerías externas. Deben mostrar
+`OK - 9 pruebas superadas.`
+
+## Documentación
 
 La explicación completa de los algoritmos, las clases, los atributos y las
 decisiones se encuentra en [`DOCUMENTACION.md`](DOCUMENTACION.md). La matriz

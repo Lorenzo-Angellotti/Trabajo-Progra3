@@ -37,7 +37,7 @@ intencional: con un elenco muy desbalanceado el filtro de género nunca sería
 elegido por el Greedy, porque descartaría casi nada. Ver la sección 6 de
 [`DOCUMENTACION.md`](DOCUMENTACION.md).
 
-##Criterios de Asignacion
+## Criterios de asignación
 
 Las decisiones potencialmente discutibles se fijaron de esta manera:
 
