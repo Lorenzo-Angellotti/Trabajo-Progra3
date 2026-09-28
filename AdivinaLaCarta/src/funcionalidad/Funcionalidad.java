@@ -194,17 +194,7 @@ public class Funcionalidad {
                 true, true, false, true, false, ColorPelo.COLORADO, false);
     }
 
-    private void agregarPersonaje(String nombre,
-                                  boolean generoMasculino,
-                                  boolean poderes,
-                                  boolean capa,
-                                  boolean mascara,
-                                  boolean arma,
-                                  boolean vuela,
-                                  boolean lentes,
-                                  boolean calvicie,
-                                  ColorPelo colorPelo,
-                                  boolean universoMarvel) {
+    private void agregarPersonaje(String nombre, boolean generoMasculino, boolean poderes, boolean capa, boolean mascara, boolean arma, boolean vuela, boolean lentes, boolean calvicie, ColorPelo colorPelo, boolean universoMarvel) {
         Personaje nuevo = new Personaje(nombre, siguienteId,
                 generoMasculino, poderes, capa, mascara, arma, vuela,
                 lentes, calvicie, colorPelo, universoMarvel);
@@ -222,8 +212,7 @@ public class Funcionalidad {
                 new Pregunta(Pregunta.MASCARA, "Usa mascara?"),
                 new Pregunta(Pregunta.ARMA, "Usa un arma?"),
                 new Pregunta(Pregunta.VUELA, "Puede volar?"),
-                new Pregunta(Pregunta.LENTES,
-                        "Usa lentes en su identidad civil?"),
+                new Pregunta(Pregunta.LENTES, "Usa lentes en su identidad civil?"),
                 new Pregunta(Pregunta.CALVICIE, "Tiene calvicie?"),
                 new Pregunta(Pregunta.PELO_COLORADO, "Tiene el pelo colorado?"),
                 new Pregunta(Pregunta.PELO_NEGRO, "Tiene el pelo negro?"),
@@ -383,23 +372,7 @@ public class Funcionalidad {
         }
     }
 
-    /* Conserva el metodo de adivinacion de la primera version. */
-    public boolean adivinar(int id) {
-        Personaje supuesto = buscadorPersonajes.buscarPorId(personajes, id);
 
-        if (supuesto == null) {
-            System.out.println("No existe un personaje con ese ID");
-            return false;
-        }
-
-        if (supuesto.isElegido()) {
-            System.out.println("Acertaste: " + supuesto.getNombre());
-            return true;
-        }
-
-        System.out.println(supuesto.getNombre() + " no es el elegido");
-        return false;
-    }
 
     private void mostrarFinalMaquinas(String ganador,
                                       SecretoMaquina secretoA,

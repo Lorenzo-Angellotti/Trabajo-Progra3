@@ -6,11 +6,7 @@ import java.util.ArrayList;
 public class Comodin {
 
     
-    public Pregunta elegirMejorPregunta(ArrayList<Personaje> candidatos,
-                                        Pregunta[] preguntas,
-                                        boolean[] preguntasUsadas,
-                                        boolean mostrarProceso,
-                                        PrintStream salida) {
+    public Pregunta elegirMejorPregunta(ArrayList<Personaje> candidatos, Pregunta[] preguntas, boolean[] preguntasUsadas, boolean mostrarProceso, PrintStream salida) {
 
         Pregunta elegida = null;
         int mejorPeorCaso = Integer.MAX_VALUE;
@@ -18,8 +14,7 @@ public class Comodin {
         int empatadas = 0;
 
         if (mostrarProceso) {
-            salida.println("Evaluacion GREEDY "
-                    + "(criterio: minimizar el peor caso)");
+            salida.println("Evaluacion GREEDY " + "(criterio: minimizar el peor caso)");
         }
 
         for (int i = 0; i < preguntas.length; i++) {

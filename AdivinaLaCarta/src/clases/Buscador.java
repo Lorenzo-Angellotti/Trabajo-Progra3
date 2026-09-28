@@ -5,17 +5,13 @@ import java.util.ArrayList;
 public class Buscador {
 
     
-    public void agregarOrdenadoPorGenero(ArrayList<Personaje> personajes,
-                                         Personaje nuevo) {
+    public void agregarOrdenadoPorGenero(ArrayList<Personaje> personajes, Personaje nuevo) {
         int posicion = buscarPosicionPorGenero(
                 personajes, nuevo.isGeneroMasculino(), 0, personajes.size());
         personajes.add(posicion, nuevo);
     }
 
-    public int buscarPosicionPorGenero(ArrayList<Personaje> personajes,
-                                       boolean generoMasculino,
-                                       int inicio,
-                                       int finExclusivo) {
+    public int buscarPosicionPorGenero(ArrayList<Personaje> personajes, boolean generoMasculino, int inicio, int finExclusivo) {
         if (inicio >= finExclusivo) {
             return inicio;
         }
@@ -37,10 +33,7 @@ public class Buscador {
         return buscarIdBinario(personajes, id, 0, personajes.size() - 1);
     }
 
-    private Personaje buscarIdBinario(ArrayList<Personaje> personajes,
-                                      int id,
-                                      int inicio,
-                                      int fin) {
+    private Personaje buscarIdBinario(ArrayList<Personaje> personajes, int id, int inicio, int fin) {
         if (inicio > fin) {
             return null;
         }

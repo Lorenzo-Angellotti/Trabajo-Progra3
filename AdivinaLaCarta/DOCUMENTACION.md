@@ -2,7 +2,7 @@
 
 ## 1. Qué hace el proyecto
 
-Adivina la Carta es un juego de deducción por consola sobre un tablero de 23
+Adivina la Carta es un juego de deducción con consola e interfaz gráfica Java Swing sobre un tablero de 23
 superhéroes. Cada jugador tiene un personaje secreto, y gana el primero que
 descubre el del rival.
 
@@ -20,8 +20,11 @@ El proyecto aplica dos técnicas algorítmicas:
 - Técnica: Divide y Conquista | Dónde se usa: Ordenar los personajes y buscarlos por ID | Clase: Ordenador, Buscador
 - Técnica: Greedy | Dónde se usa: Elegir qué preguntar y decidir cuándo arriesgar | Clase: Comodin, Personalidad
 
-Main es el punto de entrada y delega en Funcionalidad, que coordina el menú
-y las partidas. Los algoritmos y el modelo viven en el paquete clases.
+Main es el punto de entrada: sin argumentos abre la consola mediante
+Funcionalidad, y con --swing abre VentanaPrincipal. Funcionalidad prepara el
+catálogo y administra el menú de consola; Partida coordina Humano contra Máquina
+tanto en consola como en Swing. Los algoritmos y el modelo viven en el paquete
+clases.
 
 ## 2. Personajes y atributos
 
@@ -471,16 +474,22 @@ demostrarlo: con la traza activada o silenciada, la partida avanza y termina
 exactamente igual. Las pruebas automáticas se apoyan en lo mismo, ya que corren
 cientos de partidas contra un PrintStream vacío.
 
-Esta es la separación de responsabilidades que va a permitir agregar la interfaz
-gráfica más adelante sin tocar los algoritmos: la vista de consola y la vista
-gráfica van a ser dos observadores del mismo proceso.
+La interfaz gráfica ya está incorporada con Java Swing. Consola y Swing usan
+Partida para compartir el estado y las reglas de Humano contra Máquina, mientras
+JugadorMaquina conserva sus decisiones y algoritmos. La ventana muestra el
+registro de la partida; el razonamiento detallado de la máquina sigue saliendo
+por el PrintStream recibido, que al jugar desde Swing es System.out.
 
 ## 9. Protección del secreto
 
-El personaje del humano se elige mentalmente y nunca se guarda en una
-variable. JugadorMaquina sólo recibe la interfaz Respondedor, que permite
-preguntar o confirmar una suposición, pero no leer el secreto. En Humano vs
-Máquina el Respondedor solicita por consola cada sí/no.
+En consola, el personaje del humano se elige mentalmente y no se guarda en una
+variable. En Swing, el humano lo selecciona al iniciar y queda encapsulado en un
+SecretoMaquina que responde automáticamente según sus atributos.
+
+En ambos casos, JugadorMaquina sólo recibe la interfaz Respondedor, que permite
+preguntar o confirmar una suposición, pero no leer el secreto. La diferencia es
+que el Respondedor de consola solicita cada sí/no al usuario, mientras que el
+de Swing calcula la respuesta sobre el personaje seleccionado.
 
 En Máquina vs Máquina, SecretoMaquina encapsula el personaje (es decir, lo
 guarda en un campo privado y sólo expone los métodos de Respondedor). El rival
@@ -489,7 +498,7 @@ nunca recibe una referencia directa al secreto, y la coordinación lo revela
 
 ## 10. Modos de juego
 
-## Humano vs Máquina
+## Humano vs Máquina en consola
 
 El jugador elige primero contra cuál de las tres personalidades quiere jugar, y
 después piensa su personaje sin escribirlo. La máquina elige el suyo al azar
@@ -506,10 +515,41 @@ Los dos alternan turnos, y cada turno se gasta en una sola acción:
 Si queda un único candidato posible, la máquina lo dice directamente: ahí no hay
 apuesta, ya tiene la respuesta.
 
+## Humano vs Máquina en Swing
+
+El usuario selecciona su personaje secreto y la personalidad del rival en la
+ventana. La máquina elige al azar un secreto distinto del humano. Las preguntas
+y adivinanzas se seleccionan mediante listas y botones; las respuestas del
+humano se calculan automáticamente sobre su personaje.
+
+El tablero muestra las imágenes y los datos de los personajes, y atenúa las
+cartas descartadas. También se muestran la ronda, los candidatos restantes y el
+registro de las acciones. Se puede iniciar una nueva partida o cancelar la
+actual con confirmación.
+
+Ambas interfaces usan Partida para Humano contra Máquina. En consola la entrada
+se lee con Scanner; en Swing se obtiene de los componentes gráficos.
+
 ## Máquina vs Máquina
 
 Se eligen dos secretos distintos y las dos máquinas juegan solas. En cada turno
 se muestra:
+
+**Comparación de Humano vs Máquina en consola y Swing**
+
+Ambas interfaces comparten las reglas y la clase `Partida`, pero cambia la interacción del humano.
+
+| Aspecto | Consola | Swing |
+|---|---|---|
+| Tu personaje | Lo elegís mentalmente; el programa no lo conoce. | Lo seleccionás en una lista; el programa lo conoce. |
+| Respuestas a la máquina | Respondés manualmente con sí/no. | Se calculan automáticamente según tu personaje. |
+| Preguntas y adivinanzas | Ingresás opciones por teclado. | Usás listas y botones. |
+| Candidatos restantes | Se muestran como texto. | Se muestran con tarjetas, atenuando los descartados. |
+| Secreto de la máquina | Puede coincidir con el que pensaste. | Se elige uno distinto del tuyo. |
+
+Los turnos, los descartes y las condiciones para ganar los maneja la misma `Partida`. Las decisiones de la máquina también usan las mismas clases y dependen de la personalidad elegida.
+
+En consola podés responder de forma inconsistente por error; en Swing las respuestas automáticas evitan eso.
 
 - los candidatos que le quedan a la máquina que juega;
 - la decisión de riesgo, con la probabilidad de acertar contra su umbral;
@@ -520,7 +560,8 @@ se muestra:
 - la respuesta, los personajes descartados y los que quedan;
 - la apuesta, cuando la hay, con la cantidad de candidatos y la probabilidad.
 
-Los secretos se revelan al terminar.
+Los secretos se revelan al terminar. Este modo sigue coordinado por
+Funcionalidad y disponible en consola; no utiliza Partida.
 
 ## Ver la inicialización
 
@@ -536,7 +577,9 @@ el propio menú.
 ## 11. Clases
 
 - Clase: Main | Responsabilidad: Punto de entrada
-- Clase: Funcionalidad | Responsabilidad: Menú, catálogo, inicialización en tres etapas y coordinación de partidas
+- Clase: Funcionalidad | Responsabilidad: Menú y entrada por consola, catálogo, inicialización, creación de Partida para Swing y coordinación de Máquina vs Máquina
+- Clase: Partida | Responsabilidad: Estado y reglas de Humano vs Máquina compartidos entre consola y Swing
+- Clase: VentanaPrincipal | Responsabilidad: Componentes Swing, eventos del usuario y presentación del estado de Partida
 - Clase: Personaje | Responsabilidad: Modelo con los atributos del tablero
 - Clase: ColorPelo | Responsabilidad: Colores posibles de pelo
 - Clase: Pregunta | Responsabilidad: Texto de la pregunta y evaluación sobre un personaje
@@ -570,6 +613,29 @@ Las pruebas no necesitan Maven, Gradle ni librerías externas. Se ejecutan con
 .\probar.ps1 en Windows o ./probar.sh en Linux y macOS, y deben mostrar
 OK - 9 pruebas superadas.
 
+Además, test/PruebasPartida.java contiene ocho grupos de pruebas sobre:
+
+1. victoria humana y bloqueo de acciones después de finalizar;
+2. preguntas, filtrado, adivinanzas fallidas y validación de entradas;
+3. victoria de la máquina con cada personalidad y secreto humano;
+4. cancelación y bloqueo de acciones posteriores;
+5. respuestas inconsistentes;
+6. protección de las colecciones mediante copias;
+7. secretos distintos y estado inicial de una nueva partida;
+8. integración con el modo consola y regreso al menú.
+
+Los scripts probar.ps1 y probar.sh compilan ambas clases de pruebas, pero
+actualmente ejecutan únicamente Pruebas. Después de ejecutarlos, desde la carpeta
+AdivinaLaCarta se puede correr la suite adicional con:
+
+```shell
+java -ea -cp out PruebasPartida
+```
+
+Su salida esperada es `OK - 8 pruebas de Partida superadas.` Estas pruebas
+verifican la lógica sin abrir una ventana; no reemplazan la revisión visual de
+Swing.
+
 ## 13. Estructura del proyecto
 
 ```
@@ -587,10 +653,17 @@ AdivinaLaCarta/
 │   │   ├── JugadorMaquina.java
 │   │   ├── Respondedor.java
 │   │   └── SecretoMaquina.java
-│   └── funcionalidad/
-│       └── Funcionalidad.java     menú, catálogo y coordinación
+│   ├── funcionalidad/
+│   │   ├── Funcionalidad.java     menú, catálogo y entrada por consola
+│   │   └── Partida.java           estado y reglas de Humano vs Máquina
+│   ├── interfaz/
+│   │   ├── VentanaPrincipal.java  eventos y presentación Swing
+│   │   └── VentanaPrincipal.form  diseño visual de la ventana
+│   └── recursos/
+│       └── personajes/            imágenes de personajes por ID
 └── test/
-    └── Pruebas.java
+    ├── Pruebas.java
+    └── PruebasPartida.java
 ```
 
 Los nombres siguen la convención de Java: PascalCase para clases y minúscula
@@ -598,3 +671,72 @@ para paquetes.
 
 La carpeta out/ con los .class compilados está excluida por .gitignore:
 son artefactos generados, no código fuente.
+
+
+## 14. Incorporación de Java Swing y separación de responsabilidades
+
+La incorporación de Swing permite jugar Humano contra Máquina desde una ventana,
+conservando el modo consola. 
+
+### VentanaPrincipal y el archivo .form
+
+`interfaz/VentanaPrincipal.form` define el diseño de la interfaz mediante el
+UI Designer de IntelliJ. `interfaz/VentanaPrincipal.java` configura su
+comportamiento: registra los ActionListener, carga las listas e imágenes,
+cambia entre las pantallas de menú, personajes y juego, y actualiza lo visible.
+
+Los ActionListener reciben los clics y llaman a métodos de la ventana que leen
+la selección del usuario y solicitan la acción correspondiente. Swing también
+necesita código para redibujar las tarjetas, actualizar etiquetas, habilitar
+botones y mostrar diálogos; el archivo .form no resuelve esas tareas ni las
+reglas del juego.
+
+Las imágenes se cargan desde `src/recursos/personajes/<id>.png`. Si falta una,
+la ventana genera una imagen de reemplazo con el ID. La creación de la ventana
+se realiza mediante `SwingUtilities.invokeLater`.
+
+### Responsabilidad de Partida
+
+`funcionalidad/Partida.java` representa una partida Humano contra Máquina.
+Mantiene los candidatos del humano, las preguntas disponibles, el secreto de la
+máquina, el Respondedor del humano, la ronda y el registro de acontecimientos.
+Su estado puede ser EN_CURSO, GANO_HUMANO, GANO_MAQUINA o CANCELADA.
+
+Sus operaciones principales son:
+
+- `preguntar(Pregunta)`: valida que la pregunta esté disponible, obtiene la
+  respuesta, descarta candidatos y ejecuta el turno de la máquina.
+- `adivinar(int)`: busca el personaje por ID y comprueba el acierto. Si acierta,
+  finaliza la partida; si falla, descarta ese candidato y juega la máquina.
+- `cancelar()`: termina una partida activa.
+- Los métodos de consulta permiten obtener la ronda, los candidatos, las
+  preguntas disponibles y los mensajes para mostrarlos en la interfaz.
+
+Partida coordina cuándo juega la máquina, pero la elección de preguntas y
+apuestas sigue en JugadorMaquina y sus clases colaboradoras. No depende de
+Swing ni lee datos con Scanner: recibe respuestas mediante Respondedor y una
+salida PrintStream para las trazas.
+
+Crear esta clase fue una decisión de organización, no un requisito de Swing.
+Permite mantener las reglas compartidas en un solo lugar y probarlas sin abrir
+la interfaz, en lugar de duplicarlas entre la ventana y la consola.
+
+### Cómo se conectan las clases
+
+En la implementación actual, VentanaPrincipal utiliza Funcionalidad para
+preparar el catálogo y crear una partida con `crearPartida(...)`. Guarda la
+Partida recibida y la utiliza directamente para preguntar, adivinar y cancelar.
+Funcionalidad no actúa como intermediario en cada clic.
+
+El flujo del botón Preguntar es:
+
+1. El ActionListener llama a `jugarPreguntaHumano()` en la ventana.
+2. La ventana obtiene la pregunta seleccionada.
+3. Llama a `partida.preguntar(item.pregunta)`.
+4. Partida actualiza los candidatos, coordina el turno de la máquina y determina
+   si corresponde finalizar o avanzar la ronda.
+5. La ventana llama a `actualizarPartida()` para mostrar el estado resultante.
+
+El mismo método Partida.preguntar se utiliza desde la consola. Lo que cambia es
+cómo se obtiene la selección y cómo se presentan los resultados.
+

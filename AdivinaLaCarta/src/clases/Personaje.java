@@ -21,11 +21,7 @@ public class Personaje {
                 false, false, ColorPelo.NEGRO, true);
     }
 
-    public Personaje(String nombre, int id, boolean generoMasculino,
-                     boolean poderes, boolean capa, boolean mascara,
-                     boolean arma, boolean vuela, boolean lentes,
-                     boolean calvicie, ColorPelo colorPelo,
-                     boolean universoMarvel) {
+    public Personaje(String nombre, int id, boolean generoMasculino, boolean poderes, boolean capa, boolean mascara, boolean arma, boolean vuela, boolean lentes, boolean calvicie, ColorPelo colorPelo, boolean universoMarvel) {
         this.nombre = nombre;
         this.id = id;
         this.generoMasculino = generoMasculino;

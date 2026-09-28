@@ -12,7 +12,6 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Random;
 
-/** Estado y reglas de una partida humano contra maquina, sin dependencias de UI. */
 public class Partida {
     public enum Estado { EN_CURSO, GANO_HUMANO, GANO_MAQUINA, CANCELADA }
 
@@ -47,11 +46,7 @@ public class Partida {
         registrar("La maquina eligio su personaje secreto.");
     }
 
-    /** Variante con respuestas automaticas sobre el personaje elegido por el humano. */
-    public static Partida conSecretoHumano(ArrayList<Personaje> personajes,
-                                           Pregunta[] preguntas, int idHumano,
-                                           Personalidad personalidad, Random random,
-                                           PrintStream salida) {
+    public static Partida conSecretoHumano(ArrayList<Personaje> personajes, Pregunta[] preguntas, int idHumano, Personalidad personalidad, Random random, PrintStream salida) {
         Personaje humano = new Buscador().buscarPorId(personajes, idHumano);
         if (humano == null) {
             throw new IllegalArgumentException("No existe personaje con ID " + idHumano);
@@ -68,7 +63,6 @@ public class Partida {
         return partida;
     }
 
-    /** Una accion valida del humano incluye la respuesta y el turno de la maquina. */
     public void preguntar(Pregunta pregunta) {
         exigirActiva();
         if (!preguntasDisponibles.remove(pregunta)) {

@@ -14,16 +14,11 @@ public class JugadorMaquina {
     private boolean sinCandidatos;
     private int preguntasDesdeUltimaApuesta;
 
-    public JugadorMaquina(String nombre,
-                          ArrayList<Personaje> personajes,
-                          Pregunta[] preguntas) {
+    public JugadorMaquina(String nombre, ArrayList<Personaje> personajes, Pregunta[] preguntas) {
         this(nombre, personajes, preguntas, Personalidad.NORMAL);
     }
 
-    public JugadorMaquina(String nombre,
-                          ArrayList<Personaje> personajes,
-                          Pregunta[] preguntas,
-                          Personalidad personalidad) {
+    public JugadorMaquina(String nombre, ArrayList<Personaje> personajes, Pregunta[] preguntas, Personalidad personalidad) {
         this.nombre = nombre;
         this.candidatos = new ArrayList<>(personajes);
         this.preguntas = preguntas;
@@ -34,9 +29,7 @@ public class JugadorMaquina {
         this.preguntasDesdeUltimaApuesta = 0;
     }
 
-    public boolean jugarTurno(Respondedor rival,
-                              boolean mostrarProcesoCompleto,
-                              PrintStream salida) {
+    public boolean jugarTurno(Respondedor rival, boolean mostrarProcesoCompleto, PrintStream salida) {
         salida.println(nombre + " tiene " + candidatos.size()
                 + " candidatos: " + mostrarCandidatos());
 
@@ -46,7 +39,7 @@ public class JugadorMaquina {
             return false;
         }
 
-        // Certeza total: no hay nada que arriesgar.
+
         if (candidatos.size() == 1) {
             return apostar(rival, salida, "SUPOSICION DIRECTA (un solo candidato)");
         }
@@ -146,8 +139,7 @@ public class JugadorMaquina {
         return personalidad;
     }
 
-    private ArrayList<Personaje> filtrarCandidatos(Pregunta pregunta,
-                                                   boolean respuesta) {
+    private ArrayList<Personaje> filtrarCandidatos(Pregunta pregunta, boolean respuesta) {
         ArrayList<Personaje> descartados = new ArrayList<>();
 
         for (int i = candidatos.size() - 1; i >= 0; i--) {

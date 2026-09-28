@@ -15,7 +15,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -23,7 +22,6 @@ import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
@@ -45,6 +43,7 @@ public class VentanaPrincipal {
     private JPanel panelPrincipal;
     private JPanel panelTarjetas;
     private JTextArea areaRegistro;
+    private JTextArea listadoPersonajes;
     private JLabel labelEstado;
     private JLabel labelSecretoHumano;
     private JComboBox<Personalidad> comboRival;
@@ -64,11 +63,6 @@ public class VentanaPrincipal {
     private Partida partida;
 
     public VentanaPrincipal() {
-        if (panelRaiz == null || panelPrincipal == null) {
-            throw new IllegalStateException(
-                    "VentanaPrincipal.form no fue inicializado. "
-                            + "Ejecutar desde IntelliJ con UI Designer habilitado.");
-        }
         configurarComponentesDinamicos();
         configurarModelosEstaticos();
         prepararDatosIniciales();
@@ -83,7 +77,7 @@ public class VentanaPrincipal {
             }
 
             JFrame ventana = new JFrame("Adivina La Carta");
-            ventana.setContentPane(new VentanaPrincipal().getPanelPrincipal());
+            ventana.setContentPane(new VentanaPrincipal().getPanelRaiz());
             ventana.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             ventana.pack();
             ventana.setLocationRelativeTo(null);
@@ -91,12 +85,11 @@ public class VentanaPrincipal {
         });
     }
 
-    public JPanel getPanelPrincipal() {
+    public JPanel getPanelRaiz() {
         return panelRaiz;
     }
 
     private void configurarEventos() {
-        // Patron observador: cada boton dispara un evento y este listener lo atiende.
         botonEmpezar.addActionListener(evento -> iniciarPartida());
         botonVerPersonajes.addActionListener(evento -> {
             actualizarListadoPersonajes();
@@ -206,13 +199,11 @@ public class VentanaPrincipal {
 
     private void redibujarTarjetas() {
         panelTarjetas.removeAll();
-
         for (Personaje personaje : personajes) {
             JPanel tarjeta = new JPanel(new BorderLayout(4, 4));
             tarjeta.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(new Color(190, 196, 206)),
                     BorderFactory.createEmptyBorder(8, 8, 8, 8)));
-
             boolean candidato = partida == null || partida.esCandidatoHumano(personaje);
             tarjeta.setBackground(candidato ? Color.WHITE : new Color(226, 229, 234));
 
@@ -229,7 +220,6 @@ public class VentanaPrincipal {
 
             tarjeta.add(id, BorderLayout.NORTH);
             tarjeta.add(imagen, BorderLayout.CENTER);
-
             JPanel texto = new JPanel(new GridLayout(0, 1, 2, 2));
             texto.setOpaque(false);
             texto.add(nombre);
@@ -276,57 +266,12 @@ public class VentanaPrincipal {
     }
 
     private void actualizarListadoPersonajes() {
-        JTextArea listado = buscarAreaListado((JPanel) panelPrincipal.getComponent(1));
-        if (listado == null) {
-            return;
-        }
-
         StringBuilder texto = new StringBuilder();
         for (Personaje personaje : personajes) {
             texto.append(personaje.mostrarDetalle()).append(System.lineSeparator());
         }
-        listado.setText(texto.toString());
-        listado.setCaretPosition(0);
-    }
-
-    private JTextArea buscarAreaListado(JPanel panel) {
-        for (int i = 0; i < panel.getComponentCount(); i++) {
-            java.awt.Component componente = panel.getComponent(i);
-            if (componente instanceof JScrollPane) {
-                JScrollPane scroll = (JScrollPane) componente;
-                if (scroll.getViewport().getView() instanceof JTextArea) {
-                    return (JTextArea) scroll.getViewport().getView();
-                }
-            }
-
-            if (componente instanceof Container) {
-                JTextArea encontrada = buscarAreaListado((Container) componente);
-                if (encontrada != null) {
-                    return encontrada;
-                }
-            }
-        }
-        return null;
-    }
-
-    private JTextArea buscarAreaListado(Container contenedor) {
-        for (int i = 0; i < contenedor.getComponentCount(); i++) {
-            java.awt.Component componente = contenedor.getComponent(i);
-            if (componente instanceof JScrollPane) {
-                JScrollPane scroll = (JScrollPane) componente;
-                if (scroll.getViewport().getView() instanceof JTextArea) {
-                    return (JTextArea) scroll.getViewport().getView();
-                }
-            }
-
-            if (componente instanceof Container) {
-                JTextArea encontrada = buscarAreaListado((Container) componente);
-                if (encontrada != null) {
-                    return encontrada;
-                }
-            }
-        }
-        return null;
+        listadoPersonajes.setText(texto.toString());
+        listadoPersonajes.setCaretPosition(0);
     }
 
     private void actualizarEstado() {

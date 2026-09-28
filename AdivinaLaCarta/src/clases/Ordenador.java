@@ -13,11 +13,11 @@ public class Ordenador {
     }
 
     private void mergeSort(ArrayList<Personaje> u, int ini, int fin) {
-        if (ini < fin) {                 // caso base: un solo elemento
+        if (ini < fin) {
             int mid = (ini + fin) / 2;
-            mergeSort(u, ini, mid);      // dividir
+            mergeSort(u, ini, mid);
             mergeSort(u, mid + 1, fin);
-            merge(u, ini, fin);          // combinar
+            merge(u, ini, fin);
         }
     }
 
